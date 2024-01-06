@@ -1,11 +1,10 @@
-import os
-import cv2
 import torch
 import torch.nn as nn
 from torch.backends import cudnn
 cudnn.enabled = True
 from torch.utils.data import DataLoader
 import torch.nn.functional as F
+
 import importlib
 import voc12.dataloader
 from misc import pyutils, torchutils
@@ -13,25 +12,37 @@ import warnings
 warnings.filterwarnings("ignore")
 
 
+
 def validate(model, data_loader):
     print('validating ... ', flush=True, end='')
+
     val_loss_meter = pyutils.AverageMeter('loss1', 'loss2')
+
     model.eval()
+    ce = nn.CrossEntropyLoss()
     with torch.no_grad():
         for pack in data_loader:
             img = pack['img']
+
             label = pack['label'].cuda(non_blocking=True)
+
             x = model(img)
             loss = F.multilabel_soft_margin_loss(x, label)
+
             val_loss_meter.add({'loss': loss.item()})
 
     model.train()
+
     print('loss: %.4f' % (val_loss_meter.pop('loss')))
+
     return
 
 
 def run(args):
+
     model = getattr(importlib.import_module(args.cam_network), 'Net')()
+
+
     train_dataset = voc12.dataloader.VOC12ClassificationDataset(args.train_list, voc12_root=args.voc12_root,
                                                                 resize_long=(320, 640), hor_flip=True,
                                                                 crop_size=512, crop_method="random")
@@ -56,6 +67,7 @@ def run(args):
     avg_meter = pyutils.AverageMeter()
 
     timer = pyutils.Timer()
+    ce = nn.CrossEntropyLoss()
 
     for ep in range(args.cam_num_epoches):
 
@@ -74,6 +86,7 @@ def run(args):
 
             loss.backward()
             avg_meter.add({'loss': loss.item()})
+
 
             optimizer.step()
             if (optimizer.global_step-1)%100 == 0:

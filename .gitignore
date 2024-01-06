@@ -1,3 +1,5 @@
 dataset/
 result_voc/
 __pycache__/
+voc_resnet50/
+voc_mctg/

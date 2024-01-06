@@ -4,38 +4,51 @@ from chainercv.datasets import VOCSemanticSegmentationDataset
 from chainercv.evaluations import calc_semantic_segmentation_confusion
 
 
+def eval_curve(threshold, dataset, args):
+        preds = []
+        labels = []
+        miou = 0.
+        for i, img_id in enumerate(dataset.ids):
+            cam_dict = np.load(os.path.join(args.lpcam_out_dir, img_id + '.npy'), allow_pickle=True).item()
+            cams = cam_dict['high_res'] # (#val_cls, H, W)
+            cams = np.pad(cams, ((1, 0), (0, 0), (0, 0)), mode='constant', constant_values=threshold)
+            keys = np.pad(cam_dict['keys'] + 1, (1, 0), mode='constant') # [0, cls1, ...]
+            cls_labels = np.argmax(cams, axis=0)
+            cls_labels = keys[cls_labels]
+            preds.append(cls_labels.copy())
+            labels.append(dataset.get_example_by_keys(i, (1,))[0])
+
+        confusion = calc_semantic_segmentation_confusion(preds, labels)
+
+        gtj = confusion.sum(axis=1)
+        resj = confusion.sum(axis=0)
+        gtjresj = np.diag(confusion)
+        denominator = gtj + resj - gtjresj
+        iou = gtjresj / denominator
+        miou = np.nanmean(iou)
+        print("threshold: {}, miou: {:.4f}".format(threshold, miou))
+        # print('among_pred_fg_bg', float((resj[1:].sum()-confusion[1:,1:].sum())/(resj[1:].sum())))
+        return miou
+    
 def run(args):
     dataset = VOCSemanticSegmentationDataset(
         split=args.chainer_eval_set, 
         data_dir=args.voc12_root)
-
-    preds = []
-    labels = []
-    n_images = 0
-    for i, img_id in enumerate(dataset.ids):
-        n_images += 1
-        cam_dict = np.load(os.path.join(args.lpcam_out_dir, img_id + '.npy'), allow_pickle=True).item()
-        cams = cam_dict['high_res'] # (#val_cls, H, W)
-        cams = np.pad(cams, ((1, 0), (0, 0), (0, 0)), mode='constant', constant_values=args.cam_eval_thres)
-        keys = np.pad(cam_dict['keys'] + 1, (1, 0), mode='constant') # [0, cls1, ...]
-        cls_labels = np.argmax(cams, axis=0)
-        cls_labels = keys[cls_labels]
-        preds.append(cls_labels.copy())
-        labels.append(dataset.get_example_by_keys(i, (1,))[0])
-
-    confusion = calc_semantic_segmentation_confusion(preds, labels)
-
-    gtj = confusion.sum(axis=1)
-    resj = confusion.sum(axis=0)
-    gtjresj = np.diag(confusion)
-    denominator = gtj + resj - gtjresj
-    iou = gtjresj / denominator
-
-    print("threshold:", args.cam_eval_thres, '\nmiou:', np.nanmean(iou), "\ni_imgs", n_images)
-<<<<<<< HEAD
-    print('among_pred_fg_bg', float((resj[1:].sum()-confusion[1:,1:].sum())/(resj[1:].sum())))
-=======
-    print('among_pred fg_bg', float((resj[1:].sum()-confusion[1:,1:].sum())/(resj[1:].sum())))
->>>>>>> 404dabd8baa2e6beac496c0353f6fbbbf7b5864f
-
-    return np.nanmean(iou)
+    
+    best_res = 0.
+    best_threshold = 5
+    for t in range(60):
+        miou = eval_curve(t / 100., dataset, args)
+        if miou < best_res:
+            best_threshold = (t - 1) / 100.
+            break
+        else: 
+            best_res = miou
+            
+    print("-"*30)
+    print("Best threshold: {}, best miou: {:.4f}, num_imgs: {}".format(
+        best_threshold, best_res, len(dataset.ids)))
+    
+    
+    
+    

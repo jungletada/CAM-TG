@@ -1,9 +1,9 @@
 import random
 import numpy as np
-
 import pydensecrf.densecrf as dcrf
 from pydensecrf.utils import unary_from_labels
 from PIL import Image
+
 
 def pil_resize(img, size, order):
     if size[0] == img.shape[0] and size[1] == img.shape[1]:
@@ -15,6 +15,7 @@ def pil_resize(img, size, order):
         resample = Image.NEAREST
 
     return np.asarray(Image.fromarray(img).resize(size[::-1], resample))
+
 
 def pil_rescale(img, scale, order):
     height, width = img.shape[:2]
@@ -33,6 +34,7 @@ def random_resize_long(img, min_long, max_long):
 
     return pil_rescale(img, scale, 3)
 
+
 def random_scale(img, scale_range, order):
 
     target_scale = scale_range[0] + random.random() * (scale_range[1] - scale_range[0])
@@ -41,6 +43,7 @@ def random_scale(img, scale_range, order):
         return (pil_rescale(img[0], target_scale, order[0]), pil_rescale(img[1], target_scale, order[1]))
     else:
         return pil_rescale(img[0], target_scale, order)
+
 
 def random_lr_flip(img):
 
@@ -51,6 +54,7 @@ def random_lr_flip(img):
             return np.fliplr(img)
     else:
         return img
+
 
 def get_random_crop_box(imgsize, cropsize):
     h, w = imgsize
@@ -77,6 +81,7 @@ def get_random_crop_box(imgsize, cropsize):
 
     return cont_top, cont_top+ch, cont_left, cont_left+cw, img_top, img_top+ch, img_left, img_left+cw
 
+
 def random_crop(images, cropsize, default_values):
 
     if isinstance(images, np.ndarray): images = (images,)
@@ -100,8 +105,8 @@ def random_crop(images, cropsize, default_values):
 
     return new_images
 
-def top_left_crop(img, cropsize, default_value):
 
+def top_left_crop(img, cropsize, default_value):
     h, w = img.shape[:2]
 
     ch = min(cropsize, h)
@@ -115,6 +120,7 @@ def top_left_crop(img, cropsize, default_value):
     container[:ch, :cw] = img[:ch, :cw]
 
     return container
+
 
 def center_crop(img, cropsize, default_value=0):
 
@@ -154,21 +160,19 @@ def center_crop(img, cropsize, default_value=0):
 def HWC_to_CHW(img):
     return np.transpose(img, (2, 0, 1))
 
-<<<<<<< HEAD
-
-def crf_inference_label(img, labels, t=10, n_labels=21, gt_prob=0.7):
-=======
->>>>>>> 404dabd8baa2e6beac496c0353f6fbbbf7b5864f
 
 def crf_inference_label(img, labels, t=10, n_labels=21, gt_prob=0.7):
     h, w = img.shape[:2]
     d = dcrf.DenseCRF2D(w, h, n_labels)
+    # unary potentials
     unary = unary_from_labels(labels, n_labels, gt_prob=gt_prob, zero_unsure=False)
     d.setUnaryEnergy(unary)
-    d.addPairwiseGaussian(sxy=3, compat=3)
-    d.addPairwiseBilateral(sxy=50, srgb=5, rgbim=np.ascontiguousarray(np.copy(img)), compat=10)
+    
+    d.addPairwiseGaussian(sxy=3, compat=3) # 向CRF模型添加高斯配对势能。
+    d.addPairwiseBilateral(sxy=50, srgb=5, # 向CRF模型添加双边配对势能
+        rgbim=np.ascontiguousarray(np.copy(img)), compat=10)
 
-    q = d.inference(t)
+    q = d.inference(t) # t: 推断算法的迭代次数
 
     return np.argmax(np.array(q).reshape((n_labels, h, w)), axis=0)
 

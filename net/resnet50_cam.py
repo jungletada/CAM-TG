@@ -7,6 +7,7 @@ from net import resnet50
 
 
 class Net(nn.Module):
+
     def __init__(self, stride=16, n_classes=20):
         super(Net, self).__init__()
         if stride == 16:
@@ -47,8 +48,8 @@ class Net(nn.Module):
             p.requires_grad = False
 
     def trainable_parameters(self):
-        return (list(self.backbone.parameters()), list(self.newly_added.parameters()))
 
+        return (list(self.backbone.parameters()), list(self.newly_added.parameters()))
 
 class Net_CAM(Net):
 

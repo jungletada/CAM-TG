@@ -44,12 +44,6 @@ def _work(process_id, model, dataset, args):
             cam_downsized_values = cams.cuda()
 
             rw = indexing.propagate_to_edge(
-<<<<<<< HEAD
-                cam_downsized_values, edge, beta=args.beta, 
-                exp_times=args.exp_times, radius=5)
-
-            rw_up = F.interpolate(rw, scale_factor=4, mode='bilinear', align_corners=False)[..., 0, :orig_img_size[0], :orig_img_size[1]]
-=======
                 cam_downsized_values, edge, 
                 beta=args.beta, 
                 exp_times=args.exp_times, 
@@ -61,7 +55,6 @@ def _work(process_id, model, dataset, args):
                 mode='bilinear', 
                 align_corners=False)[..., 0, :original_size[0], :original_size[1]]
             
->>>>>>> 404dabd8baa2e6beac496c0353f6fbbbf7b5864f
             rw_up = rw_up / torch.max(rw_up)
 
             rw_up_bg = F.pad(rw_up, (0, 0, 0, 0, 1, 0), value=args.sem_seg_bg_thres)

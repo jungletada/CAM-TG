@@ -30,13 +30,8 @@ def same_seeds(seed):
 
 
 def run(args):
-<<<<<<< HEAD
     # same_seeds(args.seed)
-    path_index = indexing.PathIndex(
-=======
-    same_seeds(args.seed)
     path_index = indexing.PathIndex( #update radius 
->>>>>>> 404dabd8baa2e6beac496c0353f6fbbbf7b5864f
         radius=10, default_size=(args.irn_crop_size // 4, args.irn_crop_size // 4))
     model = getattr(importlib.import_module(args.irn_network), 
                     'AffinityDisplacementLoss')(path_index)
@@ -61,14 +56,8 @@ def run(args):
 
     param_groups = model.trainable_parameters()
     optimizer = torchutils.PolyOptimizer([
-<<<<<<< HEAD
         {'params': param_groups[0], 'lr': 1*args.irn_learning_rate, 'weight_decay': args.irn_weight_decay},
-        {'params': param_groups[1], 'lr': 20*args.irn_learning_rate, 'weight_decay': args.irn_weight_decay}
-=======
-        {'params': param_groups[0], 'lr': 0.1 * args.irn_learning_rate, 'weight_decay': args.irn_weight_decay},
-        {'params': param_groups[1], 'lr': 1 * args.irn_learning_rate, 'weight_decay': args.irn_weight_decay},
-        {'params': param_groups[2], 'lr': 10 * args.irn_learning_rate, 'weight_decay': args.irn_weight_decay}
->>>>>>> 404dabd8baa2e6beac496c0353f6fbbbf7b5864f
+        {'params': param_groups[1], 'lr': 10*args.irn_learning_rate, 'weight_decay': args.irn_weight_decay}
     ], lr=args.irn_learning_rate, weight_decay=args.irn_weight_decay, max_step=max_step)
 
     model = torch.nn.DataParallel(model).cuda()
@@ -111,21 +100,12 @@ def run(args):
             if (optimizer.global_step - 1) % 50 == 0:
                 timer.update_progress(optimizer.global_step / max_step)
 
-<<<<<<< HEAD
-                print('step:[%5d/%5d]' % (optimizer.global_step - 1, max_step),
-                      'loss:%.4f, %.4f, %.4f, %.4f;' % (
-                      avg_meter.pop('loss1'), avg_meter.pop('loss2'), avg_meter.pop('loss3'), avg_meter.pop('loss4')),
-                      'imps:%.1f;' % ((iter + 1) * args.irn_batch_size / timer.get_stage_elapsed()),
-                      'lr: %.4f;' % (optimizer.param_groups[0]['lr']),
-                      'etc:%s;' % (timer.str_estimated_complete()), flush=True)
-=======
                 print('step: [%5d/%5d]' % (optimizer.global_step - 1, max_step),
                       'loss: %.4f, %.4f, %.4f, %.4f;' % (
                       avg_meter.pop('loss1'), avg_meter.pop('loss2'), avg_meter.pop('loss3'), avg_meter.pop('loss4')),
                       'imps: %.1f;' % ((iter + 1) * args.irn_batch_size / timer.get_stage_elapsed()),
                       'lr: %.4f;' % (optimizer.param_groups[0]['lr']),
                       'etc: %s;' % (timer.str_estimated_complete()), flush=True)
->>>>>>> 404dabd8baa2e6beac496c0353f6fbbbf7b5864f
         else:
             timer.reset_stage()
 
@@ -136,17 +116,11 @@ def run(args):
         crop_method="top_left")
     
     infer_data_loader = DataLoader(
-<<<<<<< HEAD
         infer_dataset, 
         batch_size=args.irn_batch_size,
         shuffle=False, 
         num_workers=args.num_workers, 
         drop_last=True)
-=======
-        infer_dataset, batch_size=args.irn_batch_size,
-        shuffle=False, num_workers=args.num_workers, 
-        pin_memory=False, drop_last=True)
->>>>>>> 404dabd8baa2e6beac496c0353f6fbbbf7b5864f
 
     model.eval()
     print('Analyzing displacements mean ... ', end='')
@@ -160,12 +134,7 @@ def run(args):
             dp_mean_list.append(torch.mean(dp, dim=(0, 2, 3)).cpu())
 
         model.module.mean_shift.running_mean = torch.mean(torch.stack(dp_mean_list), dim=0)
-<<<<<<< HEAD
-        
-    print('done.')
-=======
     print('Done.')
->>>>>>> 404dabd8baa2e6beac496c0353f6fbbbf7b5864f
 
     torch.save(model.module.state_dict(), args.irn_weights_name)
     torch.cuda.empty_cache()

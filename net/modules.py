@@ -195,7 +195,6 @@ class CrossAttention(nn.Module):
         kv = self.proj_kv(input_key).reshape(
             B, N, 2, self.num_heads, self.head_dim).permute(2, 0, 3, 1, 4)
         k, v = kv[0], kv[1] # B x Nd x (Cls+N) x d
-<<<<<<< HEAD
         attn = (q @ k.transpose(-2, -1)) * self.scale  # B x Nd x (Cls+Nt) x (Cls+N)
         #== Split class and patch tokens ============================================#               
         attn_cls, attn_pat = torch.split(attn, [self.Cls, N-self.Cls], dim=-1)
@@ -203,10 +202,6 @@ class CrossAttention(nn.Module):
         attn_cls = attn_cls.softmax(dim=-1)
         attn = torch.cat((attn_cls, attn_pat), dim=-1)
         #======================================================================#     
-=======
-        
-        attn = (q @ k.transpose(-2, -1)) * self.scale  # B x Nd x (Cls+Nt) x (Cls+N)
->>>>>>> 404dabd8baa2e6beac496c0353f6fbbbf7b5864f
         # DropKey
         m_r = torch.ones_like(attn) * self.mask_ratio 
         attn = attn + torch.bernoulli(m_r) * -1e12
@@ -214,11 +209,7 @@ class CrossAttention(nn.Module):
         attn = attn.softmax(dim=-1)
         attn = self.attn_drop(attn)
         x = (attn @ v).transpose(1, 2).reshape( # B x Nd x (Cls+Nt) x d
-<<<<<<< HEAD
             B, (self.Cls+Nt), -1)               # B x (Cls+Nt) x Ct
-=======
-            B, (self.Cls+Nt), -1) # B x (Cls+Nt) x Ct
->>>>>>> 404dabd8baa2e6beac496c0353f6fbbbf7b5864f
         x = self.proj(x)
         x = self.proj_drop(x)
         
@@ -266,7 +257,6 @@ class SpatialFuseModule(nn.Module):
             mask_ratio=mask_ratio)
 
         self.mlp = MLP(in_features=query_dim, hidden_features=query_dim * 4)
-<<<<<<< HEAD
 
     def forward(self, x_query, x_key):
         """
@@ -288,18 +278,3 @@ if __name__ == "__main__":
     y = torch.ones(3, 108, 384)
     out = model(x, y)
     print(out.shape)
-=======
-
-    def forward(self, x_query, x_key):
-        """
-        z: spatial features
-        x: transformer features
-        """
-        H, W = x_query.shape[2:]
-        x_query = nchw2nlc(x_query)
-        x_query = x_query + self.drop_path(self.cross_attn(self.norm1(x_query), self.norm2(x_key)))
-        x_query = x_query + self.drop_path(self.mlp(self.norm3(x_query)))
-        x_query = nlc2nchw(x_query, d_size=(H, W))
-        
-        return x_query
->>>>>>> 404dabd8baa2e6beac496c0353f6fbbbf7b5864f

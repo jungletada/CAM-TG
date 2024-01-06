@@ -6,8 +6,7 @@ import warnings
 warnings.filterwarnings("ignore")
 
 
-if __name__ == '__main__':
-    def str2bool(v):
+def str2bool(v):
         if isinstance(v, bool):
             return v
         if v.lower() in ('yes', 'true', 't', 'y', '1'):
@@ -17,27 +16,19 @@ if __name__ == '__main__':
         else:
             raise argparse.ArgumentTypeError('Boolean value expected.')
 
+
+if __name__ == '__main__':
     parser = argparse.ArgumentParser()
 
     # Environment
-<<<<<<< HEAD
-    # parser.add_argument("--num_workers", default=os.cpu_count()//2, type=int)
-=======
->>>>>>> 404dabd8baa2e6beac496c0353f6fbbbf7b5864f
-    parser.add_argument("--seed", default=0, type=int)
     parser.add_argument("--num_workers", default=12, type=int)
-    
-    # ddp settings
-    parser.add_argument('--rank', default=0, type=int, help='rank of current process')  
-    parser.add_argument('--gpu_id', default=0, type=int, help="which gpu to use")
-    parser.add_argument("--local_rank", type=int, help='rank in current node')  
-    parser.add_argument('--device', default='cuda',help='device id (i.e. 0 or 0,1 or cpu)')
-    # Dataset
     parser.add_argument("--voc12_root", default='dataset/VOCdevkit/VOC2012/', type=str,
                         help="Path to VOC 2012 Devkit, must contain ./JPEGImages as subdirectory.")
+
+    # Dataset
     parser.add_argument("--train_list", default="voc12/train_aug.txt", type=str)
     parser.add_argument("--val_list", default="voc12/val.txt", type=str)
-    parser.add_argument("--infer_list", default="voc12/train.txt", type=str,
+    parser.add_argument("--infer_list", default="voc12/train_aug.txt", type=str,
                         help="voc12/train_aug.txt to train a fully supervised model, "
                              "voc12/train.txt or voc12/val.txt to quickly check the quality of the labels.")
     parser.add_argument("--chainer_eval_set", default="train", type=str)
@@ -50,27 +41,13 @@ if __name__ == '__main__':
     parser.add_argument("--cam_num_epoches", default=5, type=int)
     parser.add_argument("--cam_learning_rate", default=0.1, type=float)
     parser.add_argument("--cam_weight_decay", default=1e-4, type=float)
-<<<<<<< HEAD
-    
-    # Evaluate seeds (CAM)
-    parser.add_argument("--cam_eval_thres", default=0.48, type=float)
-    parser.add_argument("--cam_scales", default=(1.0, 0.75, 1.25), 
-                        help="Multi-scale inferences")
-    
-    # Mining Inter-pixel Relations
-    parser.add_argument("--conf_fg_thres", default=0.48, type=float)
-    parser.add_argument("--conf_bg_thres", default=0.28, type=float)
-=======
-    parser.add_argument("--cam_eval_thres", default=0.3, type=float)
+    parser.add_argument("--cam_eval_thres", default=0.1, type=float)
     parser.add_argument("--cam_scales", default=(1.0, 0.5, 1.5, 2.0),
                         help="Multi-scale inferences")
-    
-    # LPCAM
 
     # Mining Inter-pixel Relations
-    parser.add_argument("--conf_fg_thres", default=0.45, type=float)
-    parser.add_argument("--conf_bg_thres", default=0.25, type=float)
->>>>>>> 404dabd8baa2e6beac496c0353f6fbbbf7b5864f
+    parser.add_argument("--conf_fg_thres", default=0.30, type=float)
+    parser.add_argument("--conf_bg_thres", default=0.05, type=float)
 
     # Inter-pixel Relation Network (IRNet)
     parser.add_argument("--irn_network", default="net.resnet50_irn", type=str)
@@ -85,15 +62,11 @@ if __name__ == '__main__':
     parser.add_argument("--exp_times", default=8,
                         help="Hyper-parameter that controls the number of random walk iterations,"
                              "The random walk is performed 2^{exp_times}.")
-<<<<<<< HEAD
-    parser.add_argument("--sem_seg_bg_thres", default=0.48)
-=======
-    parser.add_argument("--sem_seg_bg_thres", default=0.35)
->>>>>>> 404dabd8baa2e6beac496c0353f6fbbbf7b5864f
+    parser.add_argument("--sem_seg_bg_thres", default=0.25)
 
     # Output Path
-    parser.add_argument("--work_space", default="result_voc", type=str)
-    parser.add_argument("--log_name", default="train_eval", type=str)
+    parser.add_argument("--work_space", default="voc_mctg", type=str)
+    parser.add_argument("--log_name", default="eval_mctg", type=str)
     parser.add_argument("--cam_weights_name", default="res50_cam.pth", type=str)
     parser.add_argument("--irn_weights_name", default="res50_irn.pth", type=str)
     parser.add_argument("--cam_out_dir", default="cam_mask", type=str)
@@ -166,13 +139,11 @@ if __name__ == '__main__':
         
     if args.cam_to_ir_label_pass is True:
         import step.cam_to_ir_label
-
         timer = pyutils.Timer('step.cam_to_ir_label:')
         step.cam_to_ir_label.run(args)
 
     if args.train_irn_pass is True:
         import step.train_irn
-
         timer = pyutils.Timer('step.train_irn:')
         step.train_irn.run(args)
 

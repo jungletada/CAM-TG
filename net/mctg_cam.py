@@ -19,19 +19,8 @@ class MCTG(VisionTransformer):
         patch_size = to_2tuple(self.patch_embed.patch_size)
         num_patches = (img_size[1] // patch_size[1]) * (img_size[0] // patch_size[0])
         self.num_patches = num_patches
-<<<<<<< HEAD
-        self.stage_indices = (0, 3, 6, 9, 12)
-        self.spatial_dims = [384, 384, 384, 384]
-        mask_ratios = [0.3, 0.2, 0.1, 0.0]
-        self.stages = len(self.stage_indices) - 1
-       
-        self.cls_token = nn.Parameter(torch.zeros(1, self.num_classes, self.embed_dim))
-        self.proj_cls_embed = nn.Linear(self.stages, self.num_classes)
-            
-=======
 
         self.cls_token = nn.Parameter(torch.zeros(1, self.num_classes, self.embed_dim))
->>>>>>> 404dabd8baa2e6beac496c0353f6fbbbf7b5864f
         self.pos_embed_cls = nn.Parameter(torch.zeros(1, self.num_classes, self.embed_dim))
         self.pos_embed_pat = nn.Parameter(torch.zeros(1, num_patches, self.embed_dim))
 
@@ -41,14 +30,11 @@ class MCTG(VisionTransformer):
         self.avgpool2d = nn.AdaptiveAvgPool2d(1)
          
         #========================================================================================#
-<<<<<<< HEAD
-=======
         self.stage_indices = (0, 3, 6, 9, 12)
         self.spatial_dims = [384, 384, 384, 384]
         mask_ratios = [0.3, 0.2, 0.1, 0.0]
         self.stages = len(self.stage_indices) - 1
        
->>>>>>> 404dabd8baa2e6beac496c0353f6fbbbf7b5864f
         self.decay_parameter = decay_parameter
         
         self.spatial_prior = SpatialPriorModule(
@@ -68,13 +54,9 @@ class MCTG(VisionTransformer):
         self.spatial_heads = nn.ModuleList(
             [nn.Conv1d(self.spatial_dims[i], self.embed_dim, 1)
              for i in range(self.stages)])
-<<<<<<< HEAD
-        
-=======
         self.proj_cls_embed = nn.Linear(self.stages, self.num_classes)
          
            
->>>>>>> 404dabd8baa2e6beac496c0353f6fbbbf7b5864f
     def interpolate_pos_encoding(self, x, h, w):
         npatch = x.shape[1] - self.num_classes
         N = self.num_patches
@@ -82,19 +64,10 @@ class MCTG(VisionTransformer):
             return self.pos_embed_pat
         
         patch_pos_embed = self.pos_embed_pat
-<<<<<<< HEAD
         h0 = h // self.patch_embed.patch_size[0]
         w0 = w // self.patch_embed.patch_size[1]
         dim = x.shape[-1]
         Np = int(math.sqrt(N))
-=======
-        dim = x.shape[-1]
-
-        h0 = h // self.patch_embed.patch_size[0]
-        w0 = w // self.patch_embed.patch_size[1]
-        dim = x.shape[-1]
-        
->>>>>>> 404dabd8baa2e6beac496c0353f6fbbbf7b5864f
         patch_pos_embed = nn.functional.interpolate(
             patch_pos_embed.reshape(1, Np, Np, dim).permute(0, 3, 1, 2),
             size=(h0, w0),
@@ -125,11 +98,7 @@ class MCTG(VisionTransformer):
             Np: num of patches"""
         B, _, H, W = x.shape  # B x 3 x H x W
         sp_feats = self.spatial_prior(x) # list [B x C x H^ x W^]
-<<<<<<< HEAD
         x = self.patch_embed(x) # e.g., b x Np x C
-=======
-        x = self.patch_embed(x) # B x Np x C
->>>>>>> 404dabd8baa2e6beac496c0353f6fbbbf7b5864f
         
         if not self.training:
             pos_embed_pat = self.interpolate_pos_encoding(x, H, W)
@@ -158,21 +127,11 @@ class MCTG(VisionTransformer):
         # [B x Cls x C], [B x Np x C], list[B x Hd x N' x N'], list[B x C x H^ x W^]
         return x_cls, x_pat, attn_weights, sp_feats
     
-<<<<<<< HEAD
     def reshape_patch_tokens(self, patch_tokens, H, W):
         B, _, C = patch_tokens.shape
         Hp = H // self.patch_embed.patch_size[0]
         Wp = W // self.patch_embed.patch_size[1]
         patch_tokens = torch.reshape(patch_tokens, [B, Hp, Wp, C])
-=======
-    def reshape_patch_tokens(self, patch_tokens, Hp, Wp):
-        B, Np, C = patch_tokens.shape
-        num_h_patches = Hp // self.patch_embed.patch_size[0]
-        num_w_patches = Wp // self.patch_embed.patch_size[1]
-        assert Np == num_h_patches * num_w_patches
-        
-        patch_tokens = torch.reshape(patch_tokens, [B, num_h_patches, num_w_patches, C])
->>>>>>> 404dabd8baa2e6beac496c0353f6fbbbf7b5864f
         patch_tokens = patch_tokens.permute([0, 3, 1, 2]).contiguous() # B x C x Hp x Wp
         return patch_tokens
     
@@ -186,7 +145,6 @@ class MCTG(VisionTransformer):
         patch_logits = torch.sum(sorted_tokens * weights.unsqueeze(0).unsqueeze(-1), dim=-2) / weights.sum()
         return patch_logits
     
-<<<<<<< HEAD
     def forward_attention(self, patch_tokens, weights, fuse_layers=3, patch_refine=True):
         Cls = self.num_classes # simplify code
         B, _, Hp, Wp = patch_tokens.shape
@@ -225,21 +183,6 @@ class MCTG(VisionTransformer):
             cams = self.forward_attention(
                 patch_tokens, weights, fuse_layers=n_layers)
             return cls_logits, cams
-=======
-    def forward(self, x, return_att=False, n_layers=3):
-        B, _, H, W = x.shape
-        class_tokens, patch_tokens, weights, _ = self.forward_features(x)
-        cls_logits = class_tokens.mean(-1)      # B x Nc
-        
-        patch_tokens = self.reshape_patch_tokens(patch_tokens, H, W)    # B x C x Hp x Wp
-        patch_tokens = self.head(patch_tokens)  # B x Cls x Hp x Wp
-        patch_logits = self.foward_patch_tokens(patch_tokens)
-        
-        if return_att:
-            cams, pat2pat, attn_maps = self.forward_attention(
-                patch_tokens, weights, fuse_layers=n_layers)
-            return cls_logits, cams, pat2pat, attn_maps
->>>>>>> 404dabd8baa2e6beac496c0353f6fbbbf7b5864f
         
         else:
             return cls_logits, patch_logits
@@ -255,44 +198,24 @@ class MCTGCAM(MCTG):
         # Get L attention maps and obtain average along heads 
         weights = torch.stack(weights)              # L x B x Nd x (Cls+Np) x (Cls+Np)
         weights = torch.mean(weights, dim=2)        # L x B x (Cls+Np) x (Cls+Np) with L = 12
-<<<<<<< HEAD
         attn_maps = weights[-fuse_layers:].mean(0)  # B x (Cls+Np) x (Cls+Np)
         cls2pat = attn_maps[:, :Cls, Cls:].reshape([B, Cls, Hp, Wp]) # B x Cls x Hp x Wp
         # Class activation map
         feature_map = patch_tokens.detach().clone() # B x Cls x Wp x Hp
         feature_map = F.relu(feature_map)           # With ReLU Activation
-=======
-        attn_maps = weights[-fuse_layers:].sum(0)   # B x (Cls+Np) x (Cls+Np)
-        
-        cls2pat = attn_maps[:, :Cls, Cls:].reshape(
-            [B, Cls, Hp, Wp]) # B x Cls x Hp x Wp
-        feature_map = patch_tokens.detach().clone() # B x Cls x Wp x Hp
-        feature_map = F.relu(feature_map)           # With ReLU Activation
-        cams = cls2pat * feature_map                # B x Cls x Hp x Wp
-        cams = torch.sqrt(cams)
->>>>>>> 404dabd8baa2e6beac496c0353f6fbbbf7b5864f
         
         pat2pat = weights[:, :, Cls:, Cls:]         #  L x B x Np x Np
         cams = cls2pat * feature_map                #  B x Nc x Hp x Wp
         cams = torch.sqrt(cams)
         
-<<<<<<< HEAD
         return cams, pat2pat
     
     def forward(self, x):
         B, _, H, W = x.shape   # batch size=2
         Cls = self.num_classes
-=======
-        return cams
-    
-    @torch.no_grad()
-    def forward(self, x, fuse_layer=12):
-        H, W = x.shape[2:] # fixed batch size=2
->>>>>>> 404dabd8baa2e6beac496c0353f6fbbbf7b5864f
         _, patch_tokens, weights, _ = self.forward_features(x)
         patch_tokens = self.reshape_patch_tokens(patch_tokens, H, W)  # B x C x Hp x Wp
         patch_tokens = self.head(patch_tokens)  # B x Cls x Hp x Wp
-<<<<<<< HEAD
         
         cams, pat2pat = self.forward_attention(
             patch_tokens, weights, fuse_layers=12)
@@ -303,11 +226,6 @@ class MCTGCAM(MCTG):
                 pat2pat.unsqueeze(1),    # B x 1 x Np x Np
                 cams.view(B, Cls, -1, 1) # B x Cls x Np x 1
             ).reshape(B, Cls, Hf, Wf)
-=======
-        cams = self.forward_attention(
-            patch_tokens, weights, 
-            fuse_layers=fuse_layer, patch_refine=True)
->>>>>>> 404dabd8baa2e6beac496c0353f6fbbbf7b5864f
         return cams
       
         
