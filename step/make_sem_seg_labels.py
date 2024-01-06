@@ -61,7 +61,6 @@ def _work(process_id, model, dataset, args):
             rw_pred = torch.argmax(rw_up_bg, dim=0).cpu().numpy()
 
             rw_pred = keys[rw_pred]
-
             imageio.imsave(os.path.join(args.sem_seg_out_dir, img_name + '.png'), rw_pred.astype(np.uint8))
 
             if process_id == n_gpus - 1 and iter % (len(databin) // 20) == 0:

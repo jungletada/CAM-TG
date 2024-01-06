@@ -42,12 +42,12 @@ if __name__ == '__main__':
     parser.add_argument("--cam_learning_rate", default=0.1, type=float)
     parser.add_argument("--cam_weight_decay", default=1e-4, type=float)
     parser.add_argument("--cam_eval_thres", default=0.1, type=float)
-    parser.add_argument("--cam_scales", default=(1.0, 0.5, 1.5, 2.0),
+    parser.add_argument("--cam_scales", default=(1.0, 0.75, 1.25),
                         help="Multi-scale inferences")
 
     # Mining Inter-pixel Relations
-    parser.add_argument("--conf_fg_thres", default=0.30, type=float)
-    parser.add_argument("--conf_bg_thres", default=0.05, type=float)
+    parser.add_argument("--conf_fg_thres", default=0.49, type=float)
+    parser.add_argument("--conf_bg_thres", default=0.10, type=float)
 
     # Inter-pixel Relation Network (IRNet)
     parser.add_argument("--irn_network", default="net.resnet50_irn", type=str)
@@ -62,7 +62,7 @@ if __name__ == '__main__':
     parser.add_argument("--exp_times", default=8,
                         help="Hyper-parameter that controls the number of random walk iterations,"
                              "The random walk is performed 2^{exp_times}.")
-    parser.add_argument("--sem_seg_bg_thres", default=0.25)
+    parser.add_argument("--sem_seg_bg_thres", default=0.49)
 
     # Output Path
     parser.add_argument("--work_space", default="voc_mctg", type=str)

@@ -26,7 +26,7 @@ def eval_curve(threshold, dataset, args):
         denominator = gtj + resj - gtjresj
         iou = gtjresj / denominator
         miou = np.nanmean(iou)
-        print("threshold: {}, miou: {:.4f}".format(threshold, miou))
+        print("threshold: {:.2f}, miou: {:.4f}".format(threshold, miou))
         # print('among_pred_fg_bg', float((resj[1:].sum()-confusion[1:,1:].sum())/(resj[1:].sum())))
         return miou
     
@@ -36,7 +36,7 @@ def run(args):
         data_dir=args.voc12_root)
     
     best_res = 0.
-    best_threshold = 5
+    best_threshold = 0
     for t in range(60):
         miou = eval_curve(t / 100., dataset, args)
         if miou < best_res:
