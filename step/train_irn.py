@@ -31,7 +31,7 @@ def same_seeds(seed):
 
 def run(args):
     # same_seeds(args.seed)
-    path_index = indexing.PathIndex( #update radius 
+    path_index = indexing.PathIndex( 
         radius=10, default_size=(args.irn_crop_size // 4, args.irn_crop_size // 4))
     model = getattr(importlib.import_module(args.irn_network), 
                     'AffinityDisplacementLoss')(path_index)
@@ -57,7 +57,7 @@ def run(args):
     param_groups = model.trainable_parameters()
     optimizer = torchutils.PolyOptimizer([
         {'params': param_groups[0], 'lr': 1*args.irn_learning_rate, 'weight_decay': args.irn_weight_decay},
-        {'params': param_groups[1], 'lr': 20*args.irn_learning_rate, 'weight_decay': args.irn_weight_decay}
+        {'params': param_groups[1], 'lr': 10*args.irn_learning_rate, 'weight_decay': args.irn_weight_decay}
     ], lr=args.irn_learning_rate, weight_decay=args.irn_weight_decay, max_step=max_step)
 
     model = torch.nn.DataParallel(model).cuda()

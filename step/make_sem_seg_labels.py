@@ -48,7 +48,9 @@ def _work(process_id, model, dataset, args):
                 beta=args.beta, 
                 exp_times=args.exp_times, 
                 radius=5)
-
+            
+            # np.save(os.path.join(args.sem_seg_out_dir, img_name + '.npy'), rw)
+            
             rw_up = F.interpolate(
                 input=rw, 
                 scale_factor=4, 
@@ -56,7 +58,8 @@ def _work(process_id, model, dataset, args):
                 align_corners=False)[..., 0, :original_size[0], :original_size[1]]
             
             rw_up = rw_up / torch.max(rw_up)
-
+            
+            
             rw_up_bg = F.pad(rw_up, (0, 0, 0, 0, 1, 0), value=args.sem_seg_bg_thres)
             rw_pred = torch.argmax(rw_up_bg, dim=0).cpu().numpy()
 

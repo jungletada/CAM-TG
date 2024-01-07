@@ -46,14 +46,14 @@ if __name__ == '__main__':
                         help="Multi-scale inferences")
 
     # Mining Inter-pixel Relations
-    parser.add_argument("--conf_fg_thres", default=0.49, type=float)
-    parser.add_argument("--conf_bg_thres", default=0.10, type=float)
+    parser.add_argument("--conf_fg_thres", default=0.30, type=float)
+    parser.add_argument("--conf_bg_thres", default=0.05, type=float)
 
     # Inter-pixel Relation Network (IRNet)
     parser.add_argument("--irn_network", default="net.resnet50_irn", type=str)
     parser.add_argument("--irn_crop_size", default=512, type=int)
     parser.add_argument("--irn_batch_size", default=32, type=int)
-    parser.add_argument("--irn_num_epoches", default=3, type=int)
+    parser.add_argument("--irn_num_epoches", default=4, type=int)
     parser.add_argument("--irn_learning_rate", default=0.1, type=float)
     parser.add_argument("--irn_weight_decay", default=1e-4, type=float)
 
@@ -62,11 +62,11 @@ if __name__ == '__main__':
     parser.add_argument("--exp_times", default=8,
                         help="Hyper-parameter that controls the number of random walk iterations,"
                              "The random walk is performed 2^{exp_times}.")
-    parser.add_argument("--sem_seg_bg_thres", default=0.49)
+    parser.add_argument("--sem_seg_bg_thres", default=0.10)
 
     # Output Path
-    parser.add_argument("--work_space", default="voc_mctg", type=str)
-    parser.add_argument("--log_name", default="eval_mctg", type=str)
+    parser.add_argument("--work_space", default="voc_resnet50", type=str)
+    parser.add_argument("--log_name", default="res50_eval", type=str)
     parser.add_argument("--cam_weights_name", default="res50_cam.pth", type=str)
     parser.add_argument("--irn_weights_name", default="res50_irn.pth", type=str)
     parser.add_argument("--cam_out_dir", default="cam_mask", type=str)
