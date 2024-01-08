@@ -9,9 +9,9 @@ def eval_curve(threshold, dataset, args):
         labels = []
         miou = 0.
         for i, img_id in enumerate(dataset.ids):
-            cam_dict = np.load(os.path.join(args.lpcam_out_dir, img_id + '.npy'), allow_pickle=True).item()
+            cam_dict = np.load(os.path.join(args.eval_cam_dir, img_id + '.npy'), allow_pickle=True).item()
             cams = cam_dict['high_res'] # (#val_cls, H, W)
-            cams = np.pad(cams, ((1, 0), (0, 0), (0, 0)), mode='constant', constant_values=threshold)
+            cams = np.pad(cams.cpu().numpy(), ((1, 0), (0, 0), (0, 0)), mode='constant', constant_values=threshold)
             keys = np.pad(cam_dict['keys'] + 1, (1, 0), mode='constant') # [0, cls1, ...]
             cls_labels = np.argmax(cams, axis=0)
             cls_labels = keys[cls_labels]
@@ -37,7 +37,7 @@ def run(args):
     
     best_res = 0.
     best_threshold = 0
-    for t in range(60):
+    for t in range(40, 60):
         miou = eval_curve(t / 100., dataset, args)
         if miou < best_res:
             best_threshold = (t - 1) / 100.

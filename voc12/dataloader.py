@@ -12,6 +12,7 @@ IMG_FOLDER_NAME = "JPEGImages"
 ANNOT_FOLDER_NAME = "Annotations"
 IGNORE = 255
 
+
 CAT_LIST = ['aeroplane', 'bicycle', 'bird', 'boat',
         'bottle', 'bus', 'car', 'cat', 'chair',
         'cow', 'diningtable', 'dog', 'horse',
@@ -20,6 +21,12 @@ CAT_LIST = ['aeroplane', 'bicycle', 'bird', 'boat',
         'tvmonitor']
 
 N_CAT = len(CAT_LIST)
+
+
+palette = [0,0,0,  128,0,0,  0,128,0,  128,128,0,  0,0,128,  128,0,128,  0,128,128,  128,128,128,
+        64,0,0,  192,0,0,  64,128,0,  192,128,0,  64,0,128,  192,0,128,  64,128,128,  192,128,128,
+        0,64,0,  128,64,0,  0,192,0,  128,192,0,  0,64,128,  128,64,128,  0,192,128,  128,192,128,
+        64,64,0,  192,64,0,  64,192,0, 192,192,0]
 
 CAT_NAME_TO_NUM = dict(zip(CAT_LIST,range(len(CAT_LIST))))
 

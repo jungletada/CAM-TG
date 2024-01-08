@@ -28,7 +28,7 @@ if __name__ == '__main__':
     # Dataset
     parser.add_argument("--train_list", default="voc12/train_aug.txt", type=str)
     parser.add_argument("--val_list", default="voc12/val.txt", type=str)
-    parser.add_argument("--infer_list", default="voc12/train_aug.txt", type=str,
+    parser.add_argument("--infer_list", default="voc12/train.txt", type=str,
                         help="voc12/train_aug.txt to train a fully supervised model, "
                              "voc12/train.txt or voc12/val.txt to quickly check the quality of the labels.")
     parser.add_argument("--chainer_eval_set", default="train", type=str)
@@ -46,14 +46,14 @@ if __name__ == '__main__':
                         help="Multi-scale inferences")
 
     # Mining Inter-pixel Relations
-    parser.add_argument("--conf_fg_thres", default=0.30, type=float)
-    parser.add_argument("--conf_bg_thres", default=0.05, type=float)
+    parser.add_argument("--conf_fg_thres", default=0.48, type=float)
+    parser.add_argument("--conf_bg_thres", default=0.28, type=float)
 
     # Inter-pixel Relation Network (IRNet)
     parser.add_argument("--irn_network", default="net.resnet50_irn", type=str)
     parser.add_argument("--irn_crop_size", default=512, type=int)
     parser.add_argument("--irn_batch_size", default=32, type=int)
-    parser.add_argument("--irn_num_epoches", default=4, type=int)
+    parser.add_argument("--irn_num_epoches", default=3, type=int)
     parser.add_argument("--irn_learning_rate", default=0.1, type=float)
     parser.add_argument("--irn_weight_decay", default=1e-4, type=float)
 
@@ -62,19 +62,22 @@ if __name__ == '__main__':
     parser.add_argument("--exp_times", default=8,
                         help="Hyper-parameter that controls the number of random walk iterations,"
                              "The random walk is performed 2^{exp_times}.")
-    parser.add_argument("--sem_seg_bg_thres", default=0.10)
+    parser.add_argument("--sem_seg_bg_thres", default=0.48)
 
     # Output Path
-    parser.add_argument("--work_space", default="voc_resnet50", type=str)
-    parser.add_argument("--log_name", default="res50_eval", type=str)
+    parser.add_argument("--work_space", default="voc_mctg", type=str)
+    parser.add_argument("--log_name", default="irn_mctg", type=str)
     parser.add_argument("--cam_weights_name", default="res50_cam.pth", type=str)
     parser.add_argument("--irn_weights_name", default="res50_irn.pth", type=str)
     parser.add_argument("--cam_out_dir", default="cam_mask", type=str)
     parser.add_argument("--lpcam_out_dir", default="cam_mask", type=str)
     parser.add_argument("--ir_label_out_dir", default="ir_label", type=str)
     parser.add_argument("--sem_seg_out_dir", default="sem_seg", type=str)
-    parser.add_argument("--ins_seg_out_dir", default="ins_seg", type=str)
-
+    
+    parser.add_argument("--ir_palatte_dir", default=None, type=str)
+    parser.add_argument("--eval_cam_dir", default="cam_mask", type=str)
+    parser.add_argument("--sem_seg_npy_dir", default="cam_mask", type=str)
+    
     # Step
     parser.add_argument("--train_cam_pass", type=str2bool, default=False)
     parser.add_argument("--make_cam_pass", type=str2bool, default=False)
@@ -88,21 +91,29 @@ if __name__ == '__main__':
     parser.add_argument("--eval_sem_seg_pass", type=str2bool, default=False)
 
     args = parser.parse_args()
-    args.log_name = osp.join(args.work_space,args.log_name)
-    args.cam_weights_name = osp.join(args.work_space,args.cam_weights_name)
-    args.irn_weights_name = osp.join(args.work_space,args.irn_weights_name)
-    args.cam_out_dir = osp.join(args.work_space,args.cam_out_dir)
-    args.lpcam_out_dir = osp.join(args.work_space,args.lpcam_out_dir)
-    args.ir_label_out_dir = osp.join(args.work_space,args.ir_label_out_dir)
-    args.sem_seg_out_dir = osp.join(args.work_space,args.sem_seg_out_dir)
-    args.ins_seg_out_dir = osp.join(args.work_space,args.ins_seg_out_dir)
-
+    
+    args.log_name = osp.join(args.work_space, args.log_name)
+    args.cam_weights_name = osp.join(args.work_space, args.cam_weights_name)
+    args.irn_weights_name = osp.join(args.work_space, args.irn_weights_name)
+    args.cam_out_dir = osp.join(args.work_space, args.cam_out_dir)
+    args.lpcam_out_dir = osp.join(args.work_space, args.lpcam_out_dir)
+    args.ir_label_out_dir = osp.join(args.work_space, args.ir_label_out_dir)
+    args.sem_seg_out_dir = osp.join(args.work_space, args.sem_seg_out_dir)
+    
+    args.eval_cam_dir = osp.join(args.work_space, args.eval_cam_dir)
+    args.sem_seg_npy_dir = osp.join(args.work_space, args.sem_seg_npy_dir)
+    if args.ir_palatte_dir is not None:
+        args.ir_palatte_dir = osp.join(args.work_space, args.ir_palatte_dir)
+        os.makedirs(args.ir_palatte_dir, exist_ok=True)
+        
     os.makedirs(args.work_space, exist_ok=True)
     os.makedirs(args.cam_out_dir, exist_ok=True)
     os.makedirs(args.lpcam_out_dir, exist_ok=True)
     os.makedirs(args.ir_label_out_dir, exist_ok=True)
     os.makedirs(args.sem_seg_out_dir, exist_ok=True)
-    os.makedirs(args.ins_seg_out_dir, exist_ok=True)
+    
+    os.makedirs(args.eval_cam_dir, exist_ok=True)
+    os.makedirs(args.sem_seg_npy_dir, exist_ok=True)
     pyutils.Logger(args.log_name + '.log')
     
     def print_info(args):

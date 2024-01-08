@@ -2,6 +2,7 @@ import argparse
 import voc12.dataloader
 import numpy as np
 
+
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()

@@ -92,7 +92,7 @@ def run(args):
                            'loss3': dp_fg_loss.item(), 'loss4': dp_bg_loss.item()})
 
             total_loss = (pos_aff_loss + neg_aff_loss) / 2 + (dp_fg_loss + dp_bg_loss) / 2
-
+            
             optimizer.zero_grad()
             total_loss.backward()
             optimizer.step()
@@ -100,9 +100,9 @@ def run(args):
             if (optimizer.global_step - 1) % 50 == 0:
                 timer.update_progress(optimizer.global_step / max_step)
 
-                print('step: [%5d/%5d]' % (optimizer.global_step - 1, max_step),
+                print('step: [%4d/%4d]' % (optimizer.global_step - 1, max_step),
                       'loss: %.4f, %.4f, %.4f, %.4f;' % (
-                      avg_meter.pop('loss1'), avg_meter.pop('loss2'), avg_meter.pop('loss3'), avg_meter.pop('loss4')),
+                            avg_meter.pop('loss1'), avg_meter.pop('loss2'), avg_meter.pop('loss3'), avg_meter.pop('loss4')),
                       'imps: %.1f;' % ((iter + 1) * args.irn_batch_size / timer.get_stage_elapsed()),
                       'lr: %.4f;' % (optimizer.param_groups[0]['lr']),
                       'etc: %s;' % (timer.str_estimated_complete()), flush=True)

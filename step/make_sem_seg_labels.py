@@ -12,13 +12,7 @@ from torch.backends import cudnn
 
 import voc12.dataloader
 from misc import torchutils, indexing
-
-
 cudnn.enabled = True
-palette = [0,0,0,  128,0,0,  0,128,0,  128,128,0,  0,0,128,  128,0,128,  0,128,128,  128,128,128,
-        64,0,0,  192,0,0,  64,128,0,  192,128,0,  64,0,128,  192,0,128,  64,128,128,  192,128,128,
-        0,64,0,  128,64,0,  0,192,0,  128,192,0,  0,64,128,  128,64,128,  0,192,128,  128,192,128,
-        64,64,0,  192,64,0,  64,192,0, 192,192,0]
 
 
 def _work(process_id, model, dataset, args):
@@ -49,8 +43,6 @@ def _work(process_id, model, dataset, args):
                 exp_times=args.exp_times, 
                 radius=5)
             
-            # np.save(os.path.join(args.sem_seg_out_dir, img_name + '.npy'), rw)
-            
             rw_up = F.interpolate(
                 input=rw, 
                 scale_factor=4, 
@@ -58,7 +50,9 @@ def _work(process_id, model, dataset, args):
                 align_corners=False)[..., 0, :original_size[0], :original_size[1]]
             
             rw_up = rw_up / torch.max(rw_up)
-            
+            rw_up_npy = rw_up.cpu().numpy()
+            rw_dict = {"keys": cam_dict['keys'], "high_res": rw_up_npy}
+            np.save(os.path.join(args.sem_seg_npy_dir, img_name + '.npy'), rw_dict)
             
             rw_up_bg = F.pad(rw_up, (0, 0, 0, 0, 1, 0), value=args.sem_seg_bg_thres)
             rw_pred = torch.argmax(rw_up_bg, dim=0).cpu().numpy()

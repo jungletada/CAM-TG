@@ -14,7 +14,7 @@ from PIL import Image
 palette = [0,0,0,  128,0,0,  0,128,0,  128,128,0,  0,0,128,  128,0,128,  0,128,128,  128,128,128,
         64,0,0,  192,0,0,  64,128,0,  192,128,0,  64,0,128,  192,0,128,  64,128,128,  192,128,128,
         0,64,0,  128,64,0,  0,192,0,  128,192,0,  0,64,128,  128,64,128,  0,192,128,  128,192,128,
-        64,64,0,  192,64,0,  64,192,0, 192,192,0]
+        64,64,0,  192,64,0,  64,192,0, 192,192,0,  255,255,255]
 
 
 def _work(process_id, infer_dataset, args):
@@ -44,11 +44,19 @@ def _work(process_id, infer_dataset, args):
 
         # 2. combine confident fg & bg
         conf = fg_conf.copy()
-        conf[fg_conf == 0] = 255
-        conf[bg_conf + fg_conf == 0] = 0
+        conf[fg_conf == 0] = 255            # we do not care
+        conf[bg_conf + fg_conf == 0] = 0    # confident background pixels
 
         imageio.imwrite(os.path.join(args.ir_label_out_dir, img_name + '.png'), conf.astype(np.uint8))
-
+        
+        # # put palette
+        # if args.ir_palatte_dir is not None:
+        #     conf[conf == 255] = 28
+        #     ir_palette = conf.astype(np.uint8)
+        #     ir_palette = Image.fromarray(ir_palette, mode='P')
+        #     ir_palette.putpalette(palette)
+        #     ir_palette.save(os.path.join(args.ir_palatte_dir, img_name + '.png'))
+        
         if process_id == args.num_workers - 1 and iter % (len(databin) // 20) == 0:
             print("%d " % ((5 * iter + 1) // (len(databin) // 20)), end='')
 
