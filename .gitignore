@@ -3,3 +3,5 @@ result_voc/
 __pycache__/
 voc_resnet50/
 voc_mctg/
+voc_mctgv2/
+voc_vig/

@@ -168,13 +168,20 @@ def crf_inference_label(img, labels, t=10, n_labels=21, gt_prob=0.7):
     unary = unary_from_labels(labels, n_labels, gt_prob=gt_prob, zero_unsure=False)
     d.setUnaryEnergy(unary)
     
-    d.addPairwiseGaussian(sxy=3, compat=3) # 向CRF模型添加高斯配对势能。
-    d.addPairwiseBilateral(sxy=50, srgb=5, # 向CRF模型添加双边配对势能
+    d.addPairwiseGaussian(sxy=3, compat=3) 
+    d.addPairwiseBilateral(sxy=50, srgb=5, 
         rgbim=np.ascontiguousarray(np.copy(img)), compat=10)
-
-    q = d.inference(t) # t: 推断算法的迭代次数
-
+    q = d.inference(t) 
+    
     return np.argmax(np.array(q).reshape((n_labels, h, w)), axis=0)
+
+
+def crf_with_alpha(img, cams, alpha, n_labels):
+    bg_score = np.power(1 - np.max(cams, axis=0, keepdims=True), alpha)
+    conf_cam = np.concatenate((bg_score, cams), axis=0)
+    conf_cam = np.argmax(conf_cam, axis=0)
+    pred = crf_inference_label(img, conf_cam, n_labels=n_labels)
+    return pred
 
 
 def get_strided_size(orig_size, stride):

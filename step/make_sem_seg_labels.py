@@ -4,7 +4,7 @@ import imageio
 import numpy as np
 from tqdm import tqdm
 import importlib
-
+from misc import imutils
 from torch import multiprocessing, cuda
 from torch.utils.data import DataLoader
 import torch.nn.functional as F
@@ -24,9 +24,8 @@ def _work(process_id, model, dataset, args):
         pin_memory=False)
 
     with torch.no_grad(), cuda.device(process_id):
-
         model.cuda()
-
+        
         for iter, pack in enumerate(tqdm(data_loader, position=process_id, desc=f'[PID{process_id}]')):
             img_name = voc12.dataloader.decode_int_filename(pack['name'][0])
             original_size = np.asarray(pack['size'])
@@ -45,14 +44,19 @@ def _work(process_id, model, dataset, args):
             
             rw_up = F.interpolate(
                 input=rw, 
-                scale_factor=4, 
+                size=(original_size[0], original_size[1]), 
                 mode='bilinear', 
-                align_corners=False)[..., 0, :original_size[0], :original_size[1]]
+                align_corners=False).squeeze(1)
             
             rw_up = rw_up / torch.max(rw_up)
-            rw_up_npy = rw_up.cpu().numpy()
-            rw_dict = {"keys": cam_dict['keys'], "high_res": rw_up_npy}
-            np.save(os.path.join(args.sem_seg_npy_dir, img_name + '.npy'), rw_dict)
+            
+            # rw_up_npy = rw_up.cpu().numpy()
+            # rw_dict = {"keys": cam_dict['keys'], "high_res": rw_up_npy}
+            # np.save(os.path.join(args.sem_seg_npy_dir, img_name + '.npy'), rw_dict)
+            
+            # bg_score = np.power(1 - np.max(rw_up_npy, axis=0, keepdims=True), 1.2)
+            # rw_up_npy = np.concatenate((bg_score, rw_up_npy), axis=0)
+            # rw_pred = np.argmax(rw_up_npy, axis=0)
             
             rw_up_bg = F.pad(rw_up, (0, 0, 0, 0, 1, 0), value=args.sem_seg_bg_thres)
             rw_pred = torch.argmax(rw_up_bg, dim=0).cpu().numpy()
@@ -66,7 +70,6 @@ def _work(process_id, model, dataset, args):
 
 def run(args):
     model = getattr(importlib.import_module(args.irn_network), 'EdgeDisplacement')()
-    print(args.irn_weights_name)
     model.load_state_dict(torch.load(args.irn_weights_name), strict=False)
     model.eval()
 

@@ -22,13 +22,14 @@ if __name__ == '__main__':
 
     # Environment
     parser.add_argument("--num_workers", default=12, type=int)
+    parser.add_argument("--seed", default=0, type=int)
     parser.add_argument("--voc12_root", default='dataset/VOCdevkit/VOC2012/', type=str,
                         help="Path to VOC 2012 Devkit, must contain ./JPEGImages as subdirectory.")
 
     # Dataset
     parser.add_argument("--train_list", default="voc12/train_aug.txt", type=str)
     parser.add_argument("--val_list", default="voc12/val.txt", type=str)
-    parser.add_argument("--infer_list", default="voc12/train.txt", type=str,
+    parser.add_argument("--infer_list", default="voc12/train_aug.txt", type=str,
                         help="voc12/train_aug.txt to train a fully supervised model, "
                              "voc12/train.txt or voc12/val.txt to quickly check the quality of the labels.")
     parser.add_argument("--chainer_eval_set", default="train", type=str)
@@ -48,7 +49,10 @@ if __name__ == '__main__':
     # Mining Inter-pixel Relations
     parser.add_argument("--conf_fg_thres", default=0.48, type=float)
     parser.add_argument("--conf_bg_thres", default=0.28, type=float)
-
+    
+    parser.add_argument("--fg_alpha", default=1, type=float)
+    parser.add_argument("--bg_alpha", default=4, type=float)
+    
     # Inter-pixel Relation Network (IRNet)
     parser.add_argument("--irn_network", default="net.resnet50_irn", type=str)
     parser.add_argument("--irn_crop_size", default=512, type=int)
@@ -58,15 +62,15 @@ if __name__ == '__main__':
     parser.add_argument("--irn_weight_decay", default=1e-4, type=float)
 
     # Random Walk Params
-    parser.add_argument("--beta", default=10)
-    parser.add_argument("--exp_times", default=8,
+    parser.add_argument("--beta", default=11, type=int)
+    parser.add_argument("--exp_times", default=8, type=int,
                         help="Hyper-parameter that controls the number of random walk iterations,"
                              "The random walk is performed 2^{exp_times}.")
-    parser.add_argument("--sem_seg_bg_thres", default=0.48)
+    parser.add_argument("--sem_seg_bg_thres", default=0.48, type=float)
 
     # Output Path
-    parser.add_argument("--work_space", default="voc_mctg", type=str)
-    parser.add_argument("--log_name", default="irn_mctg", type=str)
+    parser.add_argument("--work_space", default="voc_mctgv2", type=str)
+    parser.add_argument("--log_name", default="info", type=str)
     parser.add_argument("--cam_weights_name", default="res50_cam.pth", type=str)
     parser.add_argument("--irn_weights_name", default="res50_irn.pth", type=str)
     parser.add_argument("--cam_out_dir", default="cam_mask", type=str)
@@ -74,7 +78,7 @@ if __name__ == '__main__':
     parser.add_argument("--ir_label_out_dir", default="ir_label", type=str)
     parser.add_argument("--sem_seg_out_dir", default="sem_seg", type=str)
     
-    parser.add_argument("--ir_palatte_dir", default=None, type=str)
+    parser.add_argument("--ir_palette_dir", default=None, type=str)
     parser.add_argument("--eval_cam_dir", default="cam_mask", type=str)
     parser.add_argument("--sem_seg_npy_dir", default="cam_mask", type=str)
     
@@ -102,9 +106,9 @@ if __name__ == '__main__':
     
     args.eval_cam_dir = osp.join(args.work_space, args.eval_cam_dir)
     args.sem_seg_npy_dir = osp.join(args.work_space, args.sem_seg_npy_dir)
-    if args.ir_palatte_dir is not None:
-        args.ir_palatte_dir = osp.join(args.work_space, args.ir_palatte_dir)
-        os.makedirs(args.ir_palatte_dir, exist_ok=True)
+    if args.ir_palette_dir is not None:
+        args.ir_palette_dir = osp.join(args.work_space, args.ir_palette_dir)
+        os.makedirs(args.ir_palette_dir, exist_ok=True)
         
     os.makedirs(args.work_space, exist_ok=True)
     os.makedirs(args.cam_out_dir, exist_ok=True)

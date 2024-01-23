@@ -133,9 +133,10 @@ class Net(nn.Module):
 
     def trainable_parameters(self):
         return (
-            tuple(self.backbone.parameters()),
             tuple(self.edge_layers.parameters()),
-            tuple(self.dp_layers.parameters()))
+            tuple(self.dp_layers.parameters()),
+            tuple(self.backbone.parameters()),
+        )
 
     def train(self, mode=True):
         super().train(mode)

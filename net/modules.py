@@ -77,12 +77,16 @@ class TopKMaxPooling(nn.Module):
 
 
 class GraphConvolution(nn.Module):
-    def __init__(self, in_dim, out_dim):
+    def __init__(self, dim):
         super(GraphConvolution, self).__init__()
         self.relu = nn.LeakyReLU(0.2)
-        self.weight = nn.Conv1d(in_dim, out_dim, 1)
+        self.weight = nn.Conv1d(dim, dim, 1)
 
     def forward(self, adj, nodes):
+        """
+            adj->B x Cls x Cls
+            nodes->B x (Cg+Ct) x Cls
+        """
         nodes = torch.matmul(nodes, adj)
         nodes = self.relu(nodes)
         nodes = self.weight(nodes)

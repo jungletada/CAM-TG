@@ -3,15 +3,20 @@ import numpy as np
 from chainercv.datasets import VOCSemanticSegmentationDataset
 from chainercv.evaluations import calc_semantic_segmentation_confusion
 
-
-def eval_curve(threshold, dataset, args):
+    
+def run(args):
+    dataset = VOCSemanticSegmentationDataset(
+        split=args.chainer_eval_set, 
+        data_dir=args.voc12_root)
+    
+    def eval_curve(threshold):
         preds = []
         labels = []
         miou = 0.
         for i, img_id in enumerate(dataset.ids):
             cam_dict = np.load(os.path.join(args.eval_cam_dir, img_id + '.npy'), allow_pickle=True).item()
             cams = cam_dict['high_res'] # (#val_cls, H, W)
-            cams = np.pad(cams.cpu().numpy(), ((1, 0), (0, 0), (0, 0)), mode='constant', constant_values=threshold)
+            cams = np.pad(cams, ((1, 0), (0, 0), (0, 0)), mode='constant', constant_values=threshold)
             keys = np.pad(cam_dict['keys'] + 1, (1, 0), mode='constant') # [0, cls1, ...]
             cls_labels = np.argmax(cams, axis=0)
             cls_labels = keys[cls_labels]
@@ -30,25 +35,16 @@ def eval_curve(threshold, dataset, args):
         # print('among_pred_fg_bg', float((resj[1:].sum()-confusion[1:,1:].sum())/(resj[1:].sum())))
         return miou
     
-def run(args):
-    dataset = VOCSemanticSegmentationDataset(
-        split=args.chainer_eval_set, 
-        data_dir=args.voc12_root)
-    
     best_res = 0.
     best_threshold = 0
     for t in range(40, 60):
-        miou = eval_curve(t / 100., dataset, args)
-        if miou < best_res:
-            best_threshold = (t - 1) / 100.
-            break
-        else: 
+        miou = eval_curve(t / 100.)
+        if miou > best_res: 
             best_res = miou
+            best_threshold = t / 100.
+        else:
+            break
             
     print("-"*30)
     print("Best threshold: {}, best miou: {:.4f}, num_imgs: {}".format(
         best_threshold, best_res, len(dataset.ids)))
-    
-    
-    
-    
