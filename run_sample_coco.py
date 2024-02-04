@@ -1,6 +1,5 @@
-import argparse
 import os
-import numpy as np
+import argparse
 import os.path as osp
 
 from misc import pyutils
@@ -21,7 +20,7 @@ if __name__ == '__main__':
     # Environment
     # parser.add_argument("--num_workers", default=os.cpu_count()//2, type=int)
     parser.add_argument("--num_workers", default=12, type=int)
-    parser.add_argument("--mscoco_root", default='../MSCOCO/', type=str, help="Path to MSCOCO")
+    parser.add_argument("--mscoco_root", default='dataset/MSCOCO/', type=str, help="Path to MSCOCO")
 
     parser.add_argument("--num_classes", default=80, type=int)
 
@@ -59,12 +58,12 @@ if __name__ == '__main__':
     parser.add_argument("--sem_seg_bg_thres", default=0.35)
 
     # Output Path
-    parser.add_argument("--work_space", default="result_default", type=str) # set your path
+    parser.add_argument("--work_space", default="coco_mctgv2", type=str) # set your path
     parser.add_argument("--log_name", default="sample_train_eval", type=str)
     parser.add_argument("--cam_weights_name", default="res50_cam.pth", type=str)
     parser.add_argument("--irn_weights_name", default="res50_irn.pth", type=str)
     parser.add_argument("--cam_out_dir", default="cam_mask", type=str)
-    parser.add_argument("--lpcam_out_dir", default="lpcam_mask", type=str)
+    parser.add_argument("--lpcam_out_dir", default="lpcam_mask", type=str) # defualt "lpcam_mask"
     parser.add_argument("--ir_label_out_dir", default="ir_label", type=str)
     parser.add_argument("--sem_seg_out_dir", default="sem_seg", type=str)
     parser.add_argument("--ins_seg_out_dir", default="ins_seg", type=str)

@@ -1,4 +1,3 @@
-
 import os
 import numpy as np
 import imageio
@@ -30,18 +29,18 @@ def _work(process_id, infer_dataset, args):
         keys = np.pad(cam_dict['keys'] + 1, (1, 0), mode='constant') # class labels
 
         # 1. find confident fg & bg
-        # fg_conf_cam = np.pad(cams, ((1, 0), (0, 0), (0, 0)), 
-        #                      mode='constant', constant_values=args.conf_fg_thres)
-        # fg_conf_cam = np.argmax(fg_conf_cam, axis=0)
-        # pred = imutils.crf_inference_label(img, fg_conf_cam, n_labels=keys.shape[0])
-        pred = imutils.crf_with_alpha(img, cams, alpha=1, n_labels=keys.shape[0])
+        fg_conf_cam = np.pad(cams, ((1, 0), (0, 0), (0, 0)), 
+                             mode='constant', constant_values=args.conf_fg_thres)
+        fg_conf_cam = np.argmax(fg_conf_cam, axis=0)
+        pred = imutils.crf_inference_label(img, fg_conf_cam, n_labels=keys.shape[0])
+        # pred = imutils.crf_with_alpha(img, cams, alpha=1, n_labels=keys.shape[0])
         fg_conf = keys[pred]
         
-        # bg_conf_cam = np.pad(cams, ((1, 0), (0, 0), (0, 0)), 
-        #                      mode='constant', constant_values=args.conf_bg_thres)
-        # bg_conf_cam = np.argmax(bg_conf_cam, axis=0)
-        # pred = imutils.crf_inference_label(img, bg_conf_cam, n_labels=keys.shape[0])
-        pred = imutils.crf_with_alpha(img, cams, alpha=5, n_labels=keys.shape[0])
+        bg_conf_cam = np.pad(cams, ((1, 0), (0, 0), (0, 0)), 
+                             mode='constant', constant_values=args.conf_bg_thres)
+        bg_conf_cam = np.argmax(bg_conf_cam, axis=0)
+        pred = imutils.crf_inference_label(img, bg_conf_cam, n_labels=keys.shape[0])
+        # pred = imutils.crf_with_alpha(img, cams, alpha=8, n_labels=keys.shape[0])
         bg_conf = keys[pred]
 
         # 2. combine confident fg & bg

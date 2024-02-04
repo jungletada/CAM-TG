@@ -1,5 +1,5 @@
-import argparse
 import os
+import argparse
 import os.path as osp
 from misc import pyutils
 import warnings
@@ -62,11 +62,11 @@ if __name__ == '__main__':
     parser.add_argument("--irn_weight_decay", default=1e-4, type=float)
 
     # Random Walk Params
-    parser.add_argument("--beta", default=11, type=int)
+    parser.add_argument("--beta", default=10, type=int)
     parser.add_argument("--exp_times", default=8, type=int,
                         help="Hyper-parameter that controls the number of random walk iterations,"
                              "The random walk is performed 2^{exp_times}.")
-    parser.add_argument("--sem_seg_bg_thres", default=0.48, type=float)
+    parser.add_argument("--sem_seg_bg_thres", default=0.50, type=float)
 
     # Output Path
     parser.add_argument("--work_space", default="voc_mctgv2", type=str)

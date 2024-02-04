@@ -21,6 +21,7 @@ def normalize_cam(cam_mask):
         min_val = torch.min(channel)
         max_val = torch.max(channel)
         cam_mask[i] = (channel - min_val) / (max_val - min_val + 1e-8)
+    
     return cam_mask
 
 
@@ -64,7 +65,7 @@ def _work(process_id, model, dataset, args):
             # strided_up_size = imutils.get_strided_up_size(size, 16) # floor(W^ x H^)
             
             outputs = [model.forward(img[0].cuda(non_blocking=True)) # img[0]->[(2, 3, W', H')]
-                       for img in pack['img']]               # output->[(2, 20, W/16, H/16)]
+                       for img in pack['img']] # outputs->list[(2, 20, W/16, H/16)]
             #==========strided 4 cam list====================================================#
             strided_cam_list = [# upsample all multi-scale CAMs to strided_size: (W'/4 x H'/4)
                 F.interpolate(cam, strided_size, mode='bilinear', align_corners=False)

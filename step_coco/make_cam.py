@@ -37,16 +37,29 @@ def _work(process_id, model, dataset, args):
                 continue
             
             if valid_cat.shape[0]==0:
-                np.save(os.path.join(args.cam_out_dir, img_name.replace('jpg','npy')),{"keys": valid_cat,"cam": torch.zeros((0,strided_size[0],strided_size[1])),"high_res": torch.zeros((0,strided_up_size[0],strided_up_size[1]))[:,:size[0],:size[1]]})
+                np.save(os.path.join(args.cam_out_dir, img_name.replace('jpg','npy')),
+                        {"keys": valid_cat,
+                         "cam": torch.zeros((0,strided_size[0],strided_size[1])),
+                         "high_res": torch.zeros((0,strided_up_size[0],strided_up_size[1]))[:,:size[0],:size[1]]})
                 continue
             
             outputs = [model(img[0].cuda(non_blocking=True)) for img in pack['img']] # b x 20 x w x h
 
             strided_cam = torch.sum(torch.stack(
-                [F.interpolate(torch.unsqueeze(o, 0), strided_size, mode='bilinear', align_corners=False)[0] for o in outputs]), 0)
+                [F.interpolate(
+                    torch.unsqueeze(o, 0), 
+                    strided_size, 
+                    mode='bilinear', 
+                    align_corners=False)[0] 
+                 for o in outputs]), 0)
 
-            highres_cam = [F.interpolate(torch.unsqueeze(o, 1), strided_up_size,
-                                         mode='bilinear', align_corners=False) for o in outputs]
+            highres_cam = [F.interpolate(
+                torch.unsqueeze(o, 1), 
+                strided_up_size,
+                mode='bilinear', 
+                align_corners=False) 
+            for o in outputs]
+            
             highres_cam = torch.sum(torch.stack(highres_cam, 0), 0)[:, 0, :size[0], :size[1]]
 
             strided_cam = strided_cam[valid_cat]
