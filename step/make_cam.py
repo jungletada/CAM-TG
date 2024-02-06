@@ -96,9 +96,13 @@ def _work(process_id, model, dataset, args):
                 
                                     
 def run(args):
-    from net.mctgv2_cam import MCTGCAM
-    model = MCTGCAM(num_classes=20)
-    model_dict = torch.load("voc_mctgv2/deit_small_MCTG_best.pth", map_location='cpu')['model']
+    # from net.mctgv2_cam import MCTGCAM
+    # model = MCTGCAM(num_classes=20)
+    # model_dict = torch.load("voc_mctgv2/deit_small_MCTG_best.pth", map_location='cpu')['model']
+    
+    from net_mct.mctformer import MCTformerV2_cam
+    model = MCTformerV2_cam(num_classes=20)
+    model_dict = torch.load("voc_mctformerv2/deit_small_MCTformerV2_best.pth", map_location='cpu')['model']
     
     model.load_state_dict(model_dict)
     model.eval()
