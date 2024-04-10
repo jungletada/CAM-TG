@@ -2,6 +2,7 @@ import os
 import torch
 import importlib
 import numpy as np
+import os.path as osp
 from tqdm import tqdm
 import torch.nn.functional as F
 from torch.backends import cudnn
@@ -89,22 +90,24 @@ def _work(process_id, model, dataset, args):
             highres_cam = normalize_cam(highres_cam)
             
             np.save(os.path.join(args.cam_out_dir, img_name.replace('jpg','npy')),
-                    {"keys": valid_cat, "cam": strided_cam.cpu(), "high_res": highres_cam.cpu().numpy()}) #  
-
+                    {"keys": valid_cat, "cam": strided_cam.cpu(), "high_res": highres_cam.cpu().numpy()}) 
+             
+            # cam_dict = {}
+            # highres_cam = highres_cam.cpu().numpy()
+            # for i, cls in enumerate(valid_cat):
+            #     cam_dict[cls] = highres_cam[i]
+                
+            # np.save(os.path.join(args.cam_out_dir, img_name.replace('jpg', 'npy')),
+            #         cam_dict)  
+            
             if process_id == n_gpus - 1 and iter % (len(databin) // 20) == 0:
                 print("%d " % ((5*iter+1)//(len(databin) // 20)), end='')
                 
                                     
 def run(args):
-    # from net.mctgv2_cam import MCTGCAM
-    # model = MCTGCAM(num_classes=20)
-    # model_dict = torch.load("voc_mctgv2/deit_small_MCTG_best.pth", map_location='cpu')['model']
     
-    from net_mct.mctformer import MCTformerV2_cam
-    model = MCTformerV2_cam(num_classes=20)
-    model_dict = torch.load("voc_mctformerv2/deit_small_MCTformerV2_best.pth", map_location='cpu')['model']
-    
-    model.load_state_dict(model_dict)
+    model = getattr(importlib.import_module(args.cam_network), 'CAM')()
+    model.load_state_dict(torch.load(args.cam_weights_name), strict=True)
     model.eval()
 
     n_gpus = torch.cuda.device_count()

@@ -6,10 +6,9 @@ from misc import torchutils
 from net import resnet50
 
 
-class Net(nn.Module):
-
+class ResNet50_Cls(nn.Module):
     def __init__(self, stride=16, n_classes=20):
-        super(Net, self).__init__()
+        super(ResNet50_Cls, self).__init__()
         if stride == 16:
             self.resnet50 = resnet50.resnet50(pretrained=True, strides=(2, 2, 2, 1))
             self.stage1 = nn.Sequential(self.resnet50.conv1, self.resnet50.bn1, self.resnet50.relu, self.resnet50.maxpool,self.resnet50.layer1)
@@ -21,38 +20,31 @@ class Net(nn.Module):
         self.stage4 = nn.Sequential(self.resnet50.layer4)
         self.n_classes = n_classes
         self.classifier = nn.Conv2d(2048, n_classes, 1, bias=False)
-
         self.backbone = nn.ModuleList([self.stage1, self.stage2, self.stage3, self.stage4])
         self.newly_added = nn.ModuleList([self.classifier])
 
-
     def forward(self, x):
-
         x = self.stage1(x)
         x = self.stage2(x)
-
         x = self.stage3(x)
         x = self.stage4(x)
-
         x = torchutils.gap2d(x, keepdims=True)
         x = self.classifier(x)
         x = x.view(-1, self.n_classes)
-
         return x
 
     def train(self, mode=True):
-        super(Net, self).train(mode)
+        super(ResNet50_Cls, self).train(mode)
         for p in self.resnet50.conv1.parameters():
             p.requires_grad = False
         for p in self.resnet50.bn1.parameters():
             p.requires_grad = False
 
     def trainable_parameters(self):
-
         return (list(self.backbone.parameters()), list(self.newly_added.parameters()))
+    
 
-class Net_CAM(Net):
-
+class Net_CAM(ResNet50_Cls):
     def __init__(self,stride=16,n_classes=20):
         super(Net_CAM, self).__init__(stride=stride,n_classes=n_classes)
         
@@ -73,7 +65,8 @@ class Net_CAM(Net):
         
         return x,cams,feature
 
-class Net_Feature(Net):
+
+class Net_Feature(ResNet50_Cls):
     
     def __init__(self,stride=16,n_classes=20):
         super(Net_Feature, self).__init__(stride=stride,n_classes=n_classes)
@@ -88,13 +81,12 @@ class Net_Feature(Net):
         
         return feature
 
-class Net_CAM_Feature(Net):
 
+class Net_CAM_Feature(ResNet50_Cls):
     def __init__(self,stride=16,n_classes=20):
         super(Net_CAM_Feature, self).__init__(stride=stride,n_classes=n_classes)
         
     def forward(self, x):
-
         x = self.stage1(x)
         x = self.stage2(x)
 
@@ -114,8 +106,8 @@ class Net_CAM_Feature(Net):
         
         return x,cams_feature,cams
 
-class CAM(Net):
 
+class CAM(ResNet50_Cls):
     def __init__(self, stride=16,n_classes=20):
         super(CAM, self).__init__(stride=stride,n_classes=n_classes)
 
@@ -158,6 +150,7 @@ class CAM(Net):
         x = F.relu(x)
         x = x[0] + x[1].flip(-1)
         return x
+
 
 class Class_Predictor(nn.Module):
     def __init__(self, num_classes, representation_size):

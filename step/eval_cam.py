@@ -37,7 +37,7 @@ def run(args):
     
     best_res = 0.
     best_threshold = 0
-    for t in range(40, 60):
+    for t in range(30, 60):
         miou = eval_curve(t / 100.)
         if miou > best_res: 
             best_res = miou

@@ -1,4 +1,6 @@
 import torch
+import random
+import numpy as np
 import torch.nn as nn
 from torch.backends import cudnn
 cudnn.enabled = True
@@ -14,32 +16,41 @@ warnings.filterwarnings("ignore")
 
 def validate(model, data_loader):
     print('validating ... ', flush=True, end='')
-
     val_loss_meter = pyutils.AverageMeter('loss1', 'loss2')
-
     model.eval()
-    ce = nn.CrossEntropyLoss()
     with torch.no_grad():
         for pack in data_loader:
             img = pack['img']
-
             label = pack['label'].cuda(non_blocking=True)
-
-            x = model(img)
-            loss = F.multilabel_soft_margin_loss(x, label)
+            output = model(img)
+            if isinstance(output, tuple):
+                loss = F.multilabel_soft_margin_loss(output[0], label)
+            else:
+                loss = F.multilabel_soft_margin_loss(output, label)
 
             val_loss_meter.add({'loss': loss.item()})
 
     model.train()
-
     print('loss: %.4f' % (val_loss_meter.pop('loss')))
-
     return
 
 
+def same_seeds(seed):
+    torch.manual_seed(seed)
+    if torch.cuda.is_available():
+      torch.cuda.manual_seed(seed)
+      torch.cuda.manual_seed_all(seed)
+    np.random.seed(seed)
+    random.seed(seed)
+    
+    if seed == 0:
+        torch.backends.cudnn.benchmark = False
+        torch.backends.cudnn.deterministic = True
+        
+        
 def run(args):
-    model = getattr(importlib.import_module(args.cam_network), 'Net')()
-
+    # model = getattr(importlib.import_module(args.cam_network), 'Net')()
+    model = getattr(importlib.import_module('net.resnet50_mct_cam'), 'MCTResNet50_Cls')()
     train_dataset = voc12.dataloader.VOC12ClassificationDataset(
         args.train_list, 
         voc12_root=args.voc12_root,
@@ -58,8 +69,8 @@ def run(args):
     
     max_step = (len(train_dataset) // args.cam_batch_size) * args.cam_num_epoches
 
-    val_dataset = voc12.dataloader.VOC12ClassificationDataset(args.val_list, voc12_root=args.voc12_root,
-                                                              crop_size=512)
+    val_dataset = voc12.dataloader.VOC12ClassificationDataset(
+        args.val_list, voc12_root=args.voc12_root, crop_size=512)
     val_data_loader = DataLoader(val_dataset, batch_size=args.cam_batch_size,
                                  shuffle=False, num_workers=args.num_workers, pin_memory=True, drop_last=True)
 
@@ -77,29 +88,30 @@ def run(args):
     timer = pyutils.Timer()
 
     for ep in range(args.cam_num_epoches):
-
         print('Epoch %d/%d' % (ep+1, args.cam_num_epoches))
-
         for step, pack in enumerate(train_data_loader):
-
             img = pack['img']
             img = img.cuda()
             label = pack['label'].cuda(non_blocking=True)
-            x = model(img)
+            output = model(img)
 
             optimizer.zero_grad()
-
-            loss = F.multilabel_soft_margin_loss(x, label)
-
+            if isinstance(output, tuple):
+                cls_loss = F.multilabel_soft_margin_loss(output[0], label)
+                net_loss = F.multilabel_soft_margin_loss(output[1], label)
+                loss = cls_loss + net_loss
+                avg_meter.add({'loss': cls_loss.item(), 'n_loss': net_loss.item()})
+            else:
+                loss = F.multilabel_soft_margin_loss(output, label)
+                avg_meter.add({'loss': loss.item()})
+                
             loss.backward()
-            avg_meter.add({'loss': loss.item()})
-
-
+            
             optimizer.step()
-            if (optimizer.global_step-1)%100 == 0:
+            if (optimizer.global_step-1) % 100 == 0:
                 timer.update_progress(optimizer.global_step / max_step)
 
-                print('step:%5d/%5d' % (optimizer.global_step - 1, max_step),
+                print('step:[%5d/%5d]' % (optimizer.global_step - 1, max_step),
                       'loss:%.4f' % (avg_meter.pop('loss')),
                       'imps:%.1f' % ((step + 1) * args.cam_batch_size / timer.get_stage_elapsed()),
                       'lr: %.4f' % (optimizer.param_groups[0]['lr']),

@@ -8,6 +8,7 @@ import torchvision.datasets as dset
 
 category_map = {"1": 1, "2": 2, "3": 3, "4": 4, "5": 5, "6": 6, "7": 7, "8": 8, "9": 9, "10": 10, "11": 11, "13": 12, "14": 13, "15": 14, "16": 15, "17": 16, "18": 17, "19": 18, "20": 19, "21": 20, "22": 21, "23": 22, "24": 23, "25": 24, "27": 25, "28": 26, "31": 27, "32": 28, "33": 29, "34": 30, "35": 31, "36": 32, "37": 33, "38": 34, "39": 35, "40": 36, "41": 37, "42": 38, "43": 39, "44": 40, "46": 41, "47": 42, "48": 43, "49": 44, "50": 45, "51": 46, "52": 47, "53": 48, "54": 49, "55": 50, "56": 51, "57": 52, "58": 53, "59": 54, "60": 55, "61": 56, "62": 57, "63": 58, "64": 59, "65": 60, "67": 61, "70": 62, "72": 63, "73": 64, "74": 65, "75": 66, "76": 67, "77": 68, "78": 69, "79": 70, "80": 71, "81": 72, "82": 73, "84": 74, "85": 75, "86": 76, "87": 77, "88": 78, "89": 79, "90": 80}
 
+
 class TorchvisionNormalize():
     def __init__(self, mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)):
         self.mean = mean
@@ -22,6 +23,7 @@ class TorchvisionNormalize():
         proc_img[..., 2] = (imgarr[..., 2] / 255. - self.mean[2]) / self.std[2]
 
         return proc_img
+
 
 class GetAffinityLabelFromIndices():
     
@@ -51,8 +53,10 @@ class GetAffinityLabelFromIndices():
         return torch.from_numpy(bg_pos_affinity_label), torch.from_numpy(fg_pos_affinity_label), \
                torch.from_numpy(neg_affinity_label)
 
+
 class COCOClassificationDataset(data.Dataset):
-    def __init__(self, image_dir, anno_path, labels_path=None,resize_long=None, rescale=None, img_normal=TorchvisionNormalize(), hor_flip=False,
+    def __init__(self, image_dir, anno_path, labels_path=None,resize_long=None, rescale=None, 
+                 img_normal=TorchvisionNormalize(), hor_flip=False,
                  crop_size=None, crop_method=None, to_torch=True):
         self.coco = dset.CocoDetection(root=image_dir, annFile=anno_path)
         self.labels_path = labels_path
@@ -134,6 +138,7 @@ class COCOClassificationDataset(data.Dataset):
     def __len__(self):
         return len(self.coco)
 
+
 class COCOClassificationDatasetMSF(COCOClassificationDataset):
     def __init__(self, image_dir, anno_path, labels_path=None, img_normal=TorchvisionNormalize(), hor_flip=False,scales=(1.0,)):
         self.scales = scales
@@ -161,13 +166,13 @@ class COCOClassificationDatasetMSF(COCOClassificationDataset):
                "label": self.labels[index]}
         return out
 
+
 class COCOSegmentationDataset(data.Dataset):
     def __init__(self, image_dir, anno_path, masks_path, crop_size, rescale=None, img_normal=TorchvisionNormalize(), 
                 hor_flip=False,crop_method='random',read_ir_label=False):
         self.coco = dset.CocoDetection(root=image_dir, annFile=anno_path)
         self.masks_path = masks_path
         self.category_map = category_map
-
         self.rescale = rescale
         self.crop_size = crop_size
         self.img_normal = img_normal
@@ -220,10 +225,12 @@ class COCOSegmentationDataset(data.Dataset):
     def __len__(self):
         return len(self.coco)
 
+
 class COCOAffinityDataset(COCOSegmentationDataset):
     def __init__(self, image_dir, anno_path, label_dir, crop_size, indices_from, indices_to,
                  rescale=None, img_normal=TorchvisionNormalize(), hor_flip=False, crop_method=None):
-        super().__init__(image_dir, anno_path, label_dir, crop_size, rescale, img_normal, hor_flip, crop_method=crop_method,read_ir_label=True)
+        super().__init__(image_dir, anno_path, label_dir, crop_size, rescale, 
+                         img_normal, hor_flip, crop_method=crop_method,read_ir_label=True)
 
         self.extract_aff_lab_func = GetAffinityLabelFromIndices(indices_from, indices_to)
 
@@ -232,6 +239,7 @@ class COCOAffinityDataset(COCOSegmentationDataset):
 
         reduced_label = imutils.pil_rescale(out['label'], 0.25, 0)
 
-        out['aff_bg_pos_label'], out['aff_fg_pos_label'], out['aff_neg_label'] = self.extract_aff_lab_func(reduced_label)
+        out['aff_bg_pos_label'], out['aff_fg_pos_label'], out['aff_neg_label'] = \
+            self.extract_aff_lab_func(reduced_label)
 
         return out

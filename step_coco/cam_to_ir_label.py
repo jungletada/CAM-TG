@@ -28,14 +28,12 @@ def _work(process_id, infer_dataset, args):
 
         if keys.shape[0] == 1:
             conf = np.zeros_like(img)[:, :, 0]
-            imageio.imwrite(os.path.join(args.ir_label_out_dir, img_name + '.png'),conf.astype(np.uint8))
+            imageio.imwrite(os.path.join(args.ir_label_out_dir, img_name + '.png'), conf.astype(np.uint8))
             continue
-
 
         # 1. find confident fg & bg
         fg_conf_cam = np.pad(cams, ((1, 0), (0, 0), (0, 0)), mode='constant', constant_values=args.conf_fg_thres)
         fg_conf_cam = np.argmax(fg_conf_cam, axis=0)
-
 
         pred = imutils.crf_inference_label(img, fg_conf_cam, n_labels=keys.shape[0])
 
@@ -52,9 +50,9 @@ def _work(process_id, infer_dataset, args):
 
         imageio.imwrite(os.path.join(args.ir_label_out_dir, img_name + '.png'), conf.astype(np.uint8))
 
-
         if process_id == args.num_workers - 1 and iter % (len(databin) // 20) == 0:
             print("%d " % ((5 * iter + 1) // (len(databin) // 20)), end='')
+
 
 def run(args):
     dataset = mscoco.dataloader.COCOClassificationDataset(

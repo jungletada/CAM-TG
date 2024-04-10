@@ -55,10 +55,11 @@ class BasicConv(Seq):
     """Basic Conv Module
     (Conv + Norm + Act) x N
     """
-    def __init__(self, channels, act='relu', norm=None, bias=True, drop=0.):
+    def __init__(self, channels, act='relu', norm=None, groups=4, bias=True, drop=0.):
         m = []
         for i in range(1, len(channels)):
-            m.append(Conv2d(channels[i - 1], channels[i], 1, bias=bias, groups=4))
+            # print(f"In Basic Conv, {channels[i - 1]} and {channels[i]}; heads={groups}")
+            m.append(Conv2d(channels[i - 1], channels[i], 1, bias=bias, groups=groups)) # groups=4
             if norm is not None and norm.lower() != 'none':
                 m.append(norm_layer(norm, channels[-1]))
             if act is not None and act.lower() != 'none':
@@ -77,9 +78,11 @@ class BasicConv(Seq):
                 if m.bias is not None:
                     nn.init.zeros_(m.bias)
             elif isinstance(m, nn.BatchNorm2d) or isinstance(m, nn.InstanceNorm2d):
-                m.weight.data.fill_(1)
-                m.bias.data.zero_()
-
+                if hasattr(m, 'weight') and m.weight is not None:
+                    m.weight.data.fill_(1)
+                if hasattr(m, 'bias') and m.bias is not None:
+                    m.bias.data.zero_()
+                
 
 def batched_index_select(x, idx):
     r"""fetches neighbors features from a given neighbor idx

@@ -4,6 +4,7 @@ import mscoco.dataloader
 from torch.utils.data import DataLoader
 from chainercv.evaluations import calc_semantic_segmentation_confusion
 
+
 def run(args):
     dataset = mscoco.dataloader.COCOSegmentationDataset(image_dir = osp.join(args.mscoco_root,'train2014/'),
         anno_path= osp.join(args.mscoco_root,'annotations/instances_train2014.json'),
@@ -38,7 +39,7 @@ def run(args):
     iou = gtjresj / denominator
 
 
-    print("threshold:", args.cam_eval_thres, 'miou:', np.nanmean(iou), "i_imgs", n_images)
+    print("threshold:", args.cam_eval_thres, 'miou:', np.nanmean(iou), "num_imgs", n_images)
     print('among_predfg_bg', float((resj[1:].sum()-confusion[1:,1:].sum())/(resj[1:].sum())))
 
     return np.nanmean(iou)

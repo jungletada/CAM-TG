@@ -71,7 +71,7 @@ if __name__ == '__main__':
     # Output Path
     parser.add_argument("--work_space", default="voc_mctgv2", type=str)
     parser.add_argument("--log_name", default="info", type=str)
-    parser.add_argument("--cam_weights_name", default="res50_cam.pth", type=str)
+    parser.add_argument("--cam_weights_name", default="resnet50_s16_best.pth", type=str)
     parser.add_argument("--irn_weights_name", default="res50_irn.pth", type=str)
     parser.add_argument("--cam_out_dir", default="cam_mask", type=str)
     parser.add_argument("--lpcam_out_dir", default="cam_mask", type=str)

@@ -30,12 +30,10 @@ def _work(process_id, model, dataset, args):
             img_name = pack['name'][0].split('.')[0]
             if os.path.exists(os.path.join(args.sem_seg_out_dir, img_name + '.png')):
                 continue
-            orig_img_size = np.asarray(pack['size'])
-
-            edge, dp = model(pack['img'][0].cuda(non_blocking=True))
-
-            cam_dict = np.load(args.lpcam_out_dir + '/' + img_name + '.npy', allow_pickle=True).item()
             
+            orig_img_size = np.asarray(pack['size'])
+            edge, dp = model(pack['img'][0].cuda(non_blocking=True))
+            cam_dict = np.load(args.lpcam_out_dir + '/' + img_name + '.npy', allow_pickle=True).item()
             cams = cam_dict['cam']
             # cams = np.power(cam_dict['cam'], 1.5) # Anti
             # for cam in cams:
@@ -43,7 +41,6 @@ def _work(process_id, model, dataset, args):
             keys = np.pad(cam_dict['keys'] + 1, (1, 0), mode='constant')
             
             if keys.shape[0] == 1:
-        
                 conf = np.zeros_like(pack['img'][0])[0, 0]
                 imageio.imsave(os.path.join(args.sem_seg_out_dir, img_name + '.png'), conf.astype(np.uint8))
                 continue

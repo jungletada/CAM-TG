@@ -9,12 +9,11 @@ import mscoco.dataloader
 import importlib
 from PIL import ImageFile
 ImageFile.LOAD_TRUNCATED_IMAGES = True
+
+
 def run(args):
-
     path_index = indexing.PathIndex(radius=10, default_size=(args.irn_crop_size // 4, args.irn_crop_size // 4))
-
-    model = getattr(importlib.import_module(args.irn_network), 'AffinityDisplacementLoss')(
-        path_index)
+    model = getattr(importlib.import_module(args.irn_network), 'AffinityDisplacementLoss')(path_index)
 
     train_dataset = mscoco.dataloader.COCOAffinityDataset(
         image_dir = osp.join(args.mscoco_root,'train2014/'),
@@ -86,14 +85,17 @@ def run(args):
                       'etc:%s' % (timer.str_estimated_complete()), flush=True)
         else:
             timer.reset_stage()
+            
     infer_dataset = mscoco.dataloader.COCOClassificationDataset(
         image_dir = osp.join(args.mscoco_root,'train2014/'),
         anno_path= osp.join(args.mscoco_root,'annotations/instances_train2014.json'),
         labels_path='./mscoco/train_labels.npy',
         crop_size=args.irn_crop_size,
         crop_method="top_left")
-    infer_data_loader = DataLoader(infer_dataset, batch_size=args.irn_batch_size,
-                                   shuffle=False, num_workers=args.num_workers, pin_memory=True, drop_last=True)
+    infer_data_loader = DataLoader(
+        infer_dataset, batch_size=args.irn_batch_size,
+        shuffle=False, num_workers=args.num_workers, 
+        pin_memory=True, drop_last=True)
 
     model.eval()
     print('Analyzing displacements mean ... ', end='')

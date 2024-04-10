@@ -25,7 +25,6 @@ def _work(process_id, model, dataset, args):
 
         model.cuda()
         for iter, pack in enumerate(tqdm(data_loader, position=process_id, desc=f'[PID{process_id}]')):
-
             img_name = pack['name'][0]
             label = pack['label'][0]
             size = pack['size']
@@ -33,7 +32,7 @@ def _work(process_id, model, dataset, args):
             strided_size = imutils.get_strided_size(size, 4)
             strided_up_size = imutils.get_strided_up_size(size, 16)
 
-            if os.path.exists(os.path.join(args.cam_out_dir, img_name.replace('jpg','npy'))):
+            if os.path.exists(os.path.join(args.cam_out_dir, img_name.replace('jpg', 'npy'))):
                 continue
             
             if valid_cat.shape[0]==0:
