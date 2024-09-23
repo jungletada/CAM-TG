@@ -1,11 +1,14 @@
-
+import os
+import cv2
 import numpy as np
+import os.path as osp
+from PIL import Image
+
 import torch
 from torch.utils.data import Dataset
-import os.path
+
 import imageio
 from misc import imutils
-from PIL import Image
 import torch.nn.functional as F
 
 IMG_FOLDER_NAME = "JPEGImages"
@@ -412,3 +415,24 @@ class VOC12AffinityDataset(VOC12SegmentationDataset):
         out['aff_bg_pos_label'], out['aff_fg_pos_label'], out['aff_neg_label'] = self.extract_aff_lab_func(reduced_label)
 
         return out
+    
+    
+class VOCSegmentationLabelDataset(Dataset):
+    def __init__(self, data_dir, id_list_file):
+        super(VOCSegmentationLabelDataset, self).__init__()
+        self.ids = [id_.strip() for id_ in open(id_list_file)]
+        self.data_dir = data_dir
+
+    def __len__(self):
+        return len(self.ids)
+
+    def __getitem__(self, idx):
+        name_id = self.ids[idx]
+        image_path = osp.join(self.data_dir, "JPEGImages", name_id + '.jpg')
+        label_path = osp.join(self.data_dir, "SegmentationClass", name_id + '.png')
+        
+        image = cv2.imread(image_path, cv2.IMREAD_COLOR).astype(np.float32)
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB).astype(np.float32)
+        label = np.asarray(Image.open(label_path), dtype=np.int32)
+        label[label==255] = -1
+        return {"name_id": name_id, "image": image, "label": label}

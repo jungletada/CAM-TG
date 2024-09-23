@@ -2,7 +2,7 @@ import numpy as np
 import os.path as osp
 import mscoco.dataloader
 from torch.utils.data import DataLoader
-from chainercv.evaluations import calc_semantic_segmentation_confusion
+from misc.pyutils import calc_semantic_segmentation_confusion
 
 
 def run(args):
@@ -14,7 +14,7 @@ def run(args):
     n_images = 0
     num = len(dataset)
     for i, pack in enumerate(dataset):
-        if i%1000==0:
+        if i % 1000==0:
             print(i,'/',num)
         filename = pack['name'].split('.')[0]
         

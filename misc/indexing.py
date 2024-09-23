@@ -106,7 +106,7 @@ def affinity_sparse2dense(affinity_sparse, ind_from, ind_to, n_vertices):
 
     indices_id = torch.stack([torch.arange(0, n_vertices).long(), torch.arange(0, n_vertices).long()])
 
-    affinity_dense = torch.sparse.FloatTensor(torch.cat([indices, indices_id, indices_tp], dim=1),
+    affinity_dense = torch.sparse_coo_tensor(torch.cat([indices, indices_id, indices_tp], dim=1),
                                        torch.cat([affinity_sparse, torch.ones([n_vertices]), affinity_sparse])).to_dense().cuda()
 
     return affinity_dense

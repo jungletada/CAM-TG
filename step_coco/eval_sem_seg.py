@@ -33,8 +33,10 @@ def run(args):
     fp = 1. - gtj / denominator
     fn = 1. - resj / denominator
     iou = gtjresj / denominator
-    print("total images", n_img)
-    print(fp[0], fn[0])
-    print(np.mean(fp[1:]), np.mean(fn[1:]))
-
-    print({'iou': iou, 'miou': np.nanmean(iou)})
+    print("Total images", n_img)
+    print("False Positive: {:.4f}, False Negative: {:.4f}".format(fp[0], fn[0]))
+    print("IoU (%) for each class:")
+    for res in iou:
+        print("{:.2f}".format(res * 100.))
+    print("mIoU (%): {:.2f}".format(np.nanmean(iou) * 100.))
+    

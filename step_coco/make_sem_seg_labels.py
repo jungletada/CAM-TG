@@ -15,12 +15,15 @@ from misc import torchutils, indexing
 
 
 cudnn.enabled = True
-def _work(process_id, model, dataset, args):
 
+def _work(process_id, model, dataset, args):
     n_gpus = torch.cuda.device_count()
     databin = dataset[process_id]
-    data_loader = DataLoader(databin,
-                             shuffle=False, num_workers=args.num_workers // n_gpus, pin_memory=False)
+    data_loader = DataLoader(
+        databin,
+        shuffle=False,
+        num_workers=args.num_workers // n_gpus, 
+        pin_memory=False)
 
     with torch.no_grad(), cuda.device(process_id):
 

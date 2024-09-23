@@ -33,14 +33,12 @@ if __name__ == '__main__':
     parser.add_argument("--cam_learning_rate", default=0.1, type=float)
     parser.add_argument("--cam_weight_decay", default=1e-4, type=float)
     parser.add_argument("--cam_eval_thres", default=0.3, type=float)
-    parser.add_argument("--cam_scales", default=(1.0, 0.5, 1.5, 2.0),
+    parser.add_argument("--cam_scales", default=(1.0,),
                         help="Multi-scale inferences")
-    # LPCAM
-    
 
     # Mining Inter-pixel Relations
     parser.add_argument("--conf_fg_thres", default=0.45, type=float)
-    parser.add_argument("--conf_bg_thres", default=0.25, type=float)
+    parser.add_argument("--conf_bg_thres", default=0.38, type=float)
 
     # Inter-pixel Relation Network (IRNet)
     parser.add_argument("--irn_network", default="net.resnet50_irn", type=str)
@@ -58,7 +56,7 @@ if __name__ == '__main__':
     parser.add_argument("--sem_seg_bg_thres", default=0.35)
 
     # Output Path
-    parser.add_argument("--work_space", default="coco_mctgv2", type=str) # set your path
+    parser.add_argument("--work_space", default="results_coco", type=str) # set your path
     parser.add_argument("--log_name", default="sample_train_eval", type=str)
     parser.add_argument("--cam_weights_name", default="res50_cam.pth", type=str)
     parser.add_argument("--irn_weights_name", default="res50_irn.pth", type=str)
@@ -113,32 +111,29 @@ if __name__ == '__main__':
     
     if args.make_lpcam_pass is True:
         import step_coco.make_lpcam
-
         timer = pyutils.Timer('step.make_lpcam:')
         step_coco.make_lpcam.run(args)
 
     if args.eval_cam_pass is True:
         import step_coco.eval_cam
-
         timer = pyutils.Timer('step.eval_cam:')
         step_coco.eval_cam.run(args)
+        
     if args.cam_to_ir_label_pass is True:
-        import step_coco.cam_to_ir_label
-
+        import step_coco.cam_to_ir_label_v2
         timer = pyutils.Timer('step.cam_to_ir_label:')
-        step_coco.cam_to_ir_label.run(args)
+        step_coco.cam_to_ir_label_v2.run(args)
 
     if args.train_irn_pass is True:
         import step_coco.train_irn
-
         timer = pyutils.Timer('step.train_irn:')
         step_coco.train_irn.run(args)
 
     if args.make_sem_seg_pass is True:
-        import step_coco.make_sem_seg_labels
+        import step_coco.make_sem_seg_labels_v2
         args.sem_seg_bg_thres = float(args.sem_seg_bg_thres)
         timer = pyutils.Timer('step.make_sem_seg_labels:')
-        step_coco.make_sem_seg_labels.run(args)
+        step_coco.make_sem_seg_labels_v2.run(args)
 
     if args.eval_sem_seg_pass is True:
         import step_coco.eval_sem_seg

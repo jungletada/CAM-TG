@@ -24,10 +24,15 @@ def run(args):
         hor_flip=True,
         crop_size=args.irn_crop_size,
         crop_method="random",
-        rescale=(0.5, 1.5)
-    )
-    train_data_loader = DataLoader(train_dataset, batch_size=args.irn_batch_size,
-                                   shuffle=True, num_workers=args.num_workers, pin_memory=True, drop_last=True)
+        rescale=(0.5, 1.5))
+    
+    train_data_loader = DataLoader(
+        train_dataset, 
+        batch_size=args.irn_batch_size,
+        shuffle=True, 
+        num_workers=args.num_workers, 
+        pin_memory=True, 
+        drop_last=True)
 
     max_step = (len(train_dataset) // args.irn_batch_size) * args.irn_num_epoches
 
@@ -46,7 +51,7 @@ def run(args):
 
     for ep in range(args.irn_num_epoches):
 
-        print('Epoch %d/%d' % (ep+1, args.irn_num_epoches))
+        print('Epoch [%d/%d]' % (ep+1, args.irn_num_epoches))
 
         for iter, pack in enumerate(train_data_loader):
 
@@ -77,12 +82,12 @@ def run(args):
             if (optimizer.global_step - 1) % 50 == 0:
                 timer.update_progress(optimizer.global_step / max_step)
 
-                print('step:%5d/%5d' % (optimizer.global_step - 1, max_step),
-                      'loss:%.4f %.4f %.4f %.4f' % (
+                print('step: [%5d/%5d]' % (optimizer.global_step - 1, max_step),
+                      'loss: %.4f, %.4f, %.4f, %.4f' % (
                       avg_meter.pop('loss1'), avg_meter.pop('loss2'), avg_meter.pop('loss3'), avg_meter.pop('loss4')),
-                      'imps:%.1f' % ((iter + 1) * args.irn_batch_size / timer.get_stage_elapsed()),
+                      'imps: %.1f' % ((iter + 1) * args.irn_batch_size / timer.get_stage_elapsed()),
                       'lr: %.4f' % (optimizer.param_groups[0]['lr']),
-                      'etc:%s' % (timer.str_estimated_complete()), flush=True)
+                      'etc: %s' % (timer.str_estimated_complete()), flush=True)
         else:
             timer.reset_stage()
             
