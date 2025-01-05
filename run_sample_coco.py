@@ -37,8 +37,8 @@ if __name__ == '__main__':
                         help="Multi-scale inferences")
 
     # Mining Inter-pixel Relations
-    parser.add_argument("--conf_fg_thres", default=0.45, type=float)
-    parser.add_argument("--conf_bg_thres", default=0.38, type=float)
+    parser.add_argument("--conf_fg_thres", default=0.48, type=float)
+    parser.add_argument("--conf_bg_thres", default=0.28, type=float)
 
     # Inter-pixel Relation Network (IRNet)
     parser.add_argument("--irn_network", default="net.resnet50_irn", type=str)
@@ -53,7 +53,7 @@ if __name__ == '__main__':
     parser.add_argument("--exp_times", default=8,
                         help="Hyper-parameter that controls the number of random walk iterations,"
                              "The random walk is performed 2^{exp_times}.")
-    parser.add_argument("--sem_seg_bg_thres", default=0.35)
+    parser.add_argument("--sem_seg_bg_thres", default=0.46)
 
     # Output Path
     parser.add_argument("--work_space", default="results_coco", type=str) # set your path
@@ -120,9 +120,9 @@ if __name__ == '__main__':
         step_coco.eval_cam.run(args)
         
     if args.cam_to_ir_label_pass is True:
-        import step_coco.cam_to_ir_label_v2
+        import step_coco.cam_to_ir_label
         timer = pyutils.Timer('step.cam_to_ir_label:')
-        step_coco.cam_to_ir_label_v2.run(args)
+        step_coco.cam_to_ir_label.run(args)
 
     if args.train_irn_pass is True:
         import step_coco.train_irn
@@ -130,10 +130,10 @@ if __name__ == '__main__':
         step_coco.train_irn.run(args)
 
     if args.make_sem_seg_pass is True:
-        import step_coco.make_sem_seg_labels_v2
+        import step_coco.make_sem_seg_labels
         args.sem_seg_bg_thres = float(args.sem_seg_bg_thres)
         timer = pyutils.Timer('step.make_sem_seg_labels:')
-        step_coco.make_sem_seg_labels_v2.run(args)
+        step_coco.make_sem_seg_labels.run(args)
 
     if args.eval_sem_seg_pass is True:
         import step_coco.eval_sem_seg

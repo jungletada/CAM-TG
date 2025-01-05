@@ -37,14 +37,6 @@ def flip_cam(cam_list):
     return cam_list
 
 
-def rescale_cam(cam_mask):
-    threshold = 0.35
-    decay_factor = 0.5
-    adjusted_cam = torch.where(cam_mask > threshold, cam_mask, cam_mask * cam_mask)
-    adjusted_cam = torch.clamp(adjusted_cam, min=0.0, max=1.0)
-    return adjusted_cam
-
-
 def _work(process_id, model, dataset, args):
     databin = dataset[process_id]
     n_gpus = torch.cuda.device_count()
@@ -67,7 +59,7 @@ def _work(process_id, model, dataset, args):
             
             outputs = [model.forward(img[0].cuda(non_blocking=True)) # img[0]->[(2, 3, W', H')]
                        for img in pack['img']] # outputs->list[(2, 20, W/16, H/16)]
-            #==========strided 4 cam list====================================================#
+            #========== strided 4 cam list====================================================#
             strided_cam_list = [# upsample all multi-scale CAMs to strided_size: (W'/4 x H'/4)
                 F.interpolate(cam, strided_size, mode='bilinear', align_corners=False)
                 for cam in outputs]
@@ -103,9 +95,8 @@ def _work(process_id, model, dataset, args):
             if process_id == n_gpus - 1 and iter % (len(databin) // 20) == 0:
                 print("%d " % ((5*iter+1)//(len(databin) // 20)), end='')
                 
-                                    
+                      
 def run(args):
-    
     model = getattr(importlib.import_module(args.cam_network), 'CAM')()
     model.load_state_dict(torch.load(args.cam_weights_name), strict=True)
     model.eval()

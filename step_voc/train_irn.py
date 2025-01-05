@@ -1,18 +1,17 @@
 import torch
 import random
+import warnings
 import argparse
 import numpy as np
 import importlib
 from torch.backends import cudnn
-cudnn.enabled = True
 from torch.utils.data import DataLoader
 from misc import pyutils, torchutils, indexing
-
 from PIL import ImageFile
-ImageFile.LOAD_TRUNCATED_IMAGES = True
-
 import voc12.dataloader
-import warnings
+
+ImageFile.LOAD_TRUNCATED_IMAGES = True
+cudnn.enabled = True
 warnings.filterwarnings('ignore')
 
 
@@ -103,15 +102,12 @@ def run(args):
 
             if (optimizer.global_step - 1) % 50 == 0:
                 timer.update_progress(optimizer.global_step / max_step)
-
                 print('step: [%4d/%4d]' % (optimizer.global_step - 1, max_step),
                       'loss: %.4f, %.4f, %.4f, %.4f;' % (
                             avg_meter.pop('loss1'), avg_meter.pop('loss2'), avg_meter.pop('loss3'), avg_meter.pop('loss4')),
                       'imps: %.1f;' % ((iter + 1) * args.irn_batch_size / timer.get_stage_elapsed()),
                       'lr: %.4f;' % (optimizer.param_groups[0]['lr']),
                       'etc: %s;' % (timer.str_estimated_complete()), flush=True)
-        else:
-            timer.reset_stage()
 
     infer_dataset = voc12.dataloader.VOC12ImageDataset(
         args.infer_list,

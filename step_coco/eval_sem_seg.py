@@ -2,13 +2,15 @@ import numpy as np
 import os.path as osp
 import mscoco.dataloader
 from torch.utils.data import DataLoader
-from chainercv.evaluations import calc_semantic_segmentation_confusion
+from mscoco.dataloader import COCOSegmentationLabelDataset
+from misc.pyutils import calc_semantic_segmentation_confusion
 import imageio
 
 def run(args):
-    dataset = mscoco.dataloader.COCOSegmentationDataset(image_dir = osp.join(args.mscoco_root,'train2014/'),
+    dataset = mscoco.dataloader.COCOSegmentationDataset(
+        image_dir = osp.join(args.mscoco_root,'train2014/'),
         anno_path= osp.join(args.mscoco_root,'annotations/instances_train2014.json'),
-        masks_path=osp.join(args.mscoco_root,'mask/train2014'),
+        masks_path=osp.join(args.mscoco_root,'MaskSets/train2014'),
         crop_size=512)
     preds = []
     labels = []

@@ -12,7 +12,8 @@ from misc import torchutils, imutils
 
 
 """
-"keys": validate_class, "cam": strided_cam, "high_res": highres_cam
+cam_dict:
+    "keys": validate_class, "cam": strided_cam, "high_res": highres_cam
 """
 
 

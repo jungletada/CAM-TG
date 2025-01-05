@@ -12,9 +12,24 @@ from tqdm import tqdm
 import os.path as osp
 import mscoco.dataloader
 from misc import torchutils, indexing
-
-
 cudnn.enabled = True
+
+
+def normalize_cam(cam_mask):
+    for i in range(cam_mask.size(0)):
+        channel = cam_mask[i]
+        min_val = torch.min(channel)
+        max_val = torch.max(channel)
+        cam_mask[i] = (channel - min_val) / (max_val - min_val + 1e-8)
+    return cam_mask
+
+
+# def minmax_cam(cam_mask):    
+#     min_val = torch.min(cam_mask, dim=(1, 2), keepdim=True)
+#     max_val = torch.max(cam_mask, dim=(1, 2), keepdim=True)
+#     cam_mask = (cam_mask - min_val) / (max_val - min_val + 1e-8)
+#     return cam_mask
+
 
 def _work(process_id, model, dataset, args):
     n_gpus = torch.cuda.device_count()
@@ -31,12 +46,13 @@ def _work(process_id, model, dataset, args):
 
         for iter, pack in enumerate(tqdm(data_loader, position=process_id, desc=f'[PID{process_id}]')):
             img_name = pack['name'][0].split('.')[0]
-            if os.path.exists(os.path.join(args.sem_seg_out_dir, img_name + '.png')):
-                continue
             
-            orig_img_size = np.asarray(pack['size'])
+            # if os.path.exists(os.path.join(args.sem_seg_out_dir, img_name + '.png')):
+            #     continue
+            
+            img_size = pack['size']
             edge, dp = model(pack['img'][0].cuda(non_blocking=True))
-            cam_dict = np.load(args.lpcam_out_dir + '/' + img_name + '.npy', allow_pickle=True).item()
+            cam_dict = np.load(args.cam_out_dir + '/' + img_name + '.npy', allow_pickle=True).item()
             cams = cam_dict['cam']
             # cams = np.power(cam_dict['cam'], 1.5) # Anti
             # for cam in cams:
@@ -50,11 +66,17 @@ def _work(process_id, model, dataset, args):
 
             cam_downsized_values = cams.cuda()
 
-            rw = indexing.propagate_to_edge(cam_downsized_values, edge, beta=args.beta, exp_times=args.exp_times, radius=5)
+            rw = indexing.propagate_to_edge(
+                cam_downsized_values, 
+                edge, 
+                beta=args.beta, 
+                exp_times=args.exp_times, 
+                radius=5)
 
-            rw_up = F.interpolate(rw, scale_factor=4, mode='bilinear', align_corners=False)[..., 0, :orig_img_size[0], :orig_img_size[1]]
-            rw_up = rw_up / torch.max(rw_up)
-
+            rw_up = F.interpolate(
+                rw, size=img_size, mode='bilinear', align_corners=False).squeeze(1)
+            
+            rw_up = normalize_cam(rw_up)    #rw_up / torch.max(rw_up)
             rw_up_bg = F.pad(rw_up, (0, 0, 0, 0, 1, 0), value=args.sem_seg_bg_thres)
             rw_pred = torch.argmax(rw_up_bg, dim=0).cpu().numpy()
 

@@ -195,11 +195,11 @@ class COCOSegmentationDataset(data.Dataset):
         name = self.ids2name[ids]
 
         img = np.asarray(self.coco[index][0])
-        if self.read_ir_label:
-          label = imageio.imread(os.path.join(self.masks_path, name+'.png'))
-        else:
-            label = imageio.imread(os.path.join(self.masks_path, str(ids) + '.png'))
-
+        # if self.read_ir_label:
+        #   label = imageio.imread(os.path.join(self.masks_path, name+'.png'))
+        # else:
+        #     label = imageio.imread(os.path.join(self.masks_path, str(ids) + '.png'))
+        label = imageio.imread(os.path.join(self.masks_path, name+'.png'))
         if self.rescale:
             img, label = imutils.random_scale((img, label), scale_range=self.rescale, order=(3, 0))
 
@@ -223,9 +223,9 @@ class COCOSegmentationDataset(data.Dataset):
         label = imageio.imread(os.path.join(self.masks_path, str(ids) + '.png'))
         return label
     
-    def get_label_by_name(self,name):
+    def get_label_by_name(self, name):
         # COCO_val2014_000000159977.jpg
-        label = imageio.imread(os.path.join(self.masks_path, str(int(name.split('.')[0].split('_')[-1])) + '.png'))
+        label = imageio.imread(os.path.join(self.masks_path, name + '.png'))
         return label
 
     def __len__(self):
